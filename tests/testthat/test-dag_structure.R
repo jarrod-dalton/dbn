@@ -52,3 +52,5 @@ test_that("FC4: Return a named list with one element per node.",
                expected = c("wells", "pe", "d.dimer", "angio", 
                             "treat", "death", "pregnant"))
 })
+
+rm(list = "test_obj")

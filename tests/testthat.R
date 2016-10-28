@@ -1,5 +1,5 @@
-library("testthat")
-library("checkmate")
-library("Theta")
+library(testthat)
+library(checkmate)
+library(dbn)
 
-test_check("Theta")
+test_check("dbn")

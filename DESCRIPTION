@@ -12,8 +12,10 @@ Depends:
 Imports:
     checkmate,
     DiagrammeR (>= 0.8),
+    dplyr,
     magrittr,
-    stringr
+    stringr,
+    tibble
 Suggests:
     knitr,
     survival,
