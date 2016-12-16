@@ -43,3 +43,18 @@ NULL
 #'
 
 NULL
+
+#' @name %T>%
+#' @rdname chain
+#' @importFrom magrittr %T>%
+#' @export %T>%
+#' @usage lhs \%T>\% rhs
+#' 
+#' @title Tee Pipe Operator
+#' @description This is a copy of the documentation for \code{\%T>\%} in 
+#' \code{magrittr}.  The copy here is made to conform to CRAN requirements 
+#' regarding documentation.  Please see the \code{magrittr} documenation
+#' for the complete and current documentation.
+#'
+
+NULL

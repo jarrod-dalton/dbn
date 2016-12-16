@@ -57,9 +57,9 @@ dbn.formula <- function(nodes, ...)
   node_attr <- 
     tibble::data_frame(node_name = names(dag_str[["parent_list"]])) %>%
     dplyr::mutate(parent = lapply(dag_str[["parent_list"]], identity),
-                  is_decision = FALSE,
-                  is_utility = FALSE,
-                  is_temporal = FALSE,
+                  is_dynamic = FALSE,
+                  n_dynamic = 1,
+                  self_depend = FALSE,
                   model = lapply(dag_str[["parent_list"]], function(x) NULL))
   
   structure(list(network = nodes,
