@@ -8,6 +8,7 @@
 \alias{get_shared_parent}
 \alias{get_star_node}
 \alias{plot.dbn_unexported}
+\alias{sanitize_custom_edge}
 \alias{write_edge}
 \title{Unexported Utilities for \code{plot.dbn}}
 \usage{
@@ -19,11 +20,13 @@ get_node_string(node_name, custom_node)
 
 get_star_node(node_name, custom_node)
 
-write_edge(Node)
+sanitize_custom_edge(custom_edge, custom_edge_name, Node)
+
+write_edge(Node, custom_edge = custom_edge)
 
 get_shared_parent(node, parent, Node)
 
-get_edge_text(parent, node, shared_parent)
+get_edge_text(parent, node, shared_parent, custom_edge)
 }
 \arguments{
 \item{Node}{The node attibutes data frame.}
