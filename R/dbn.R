@@ -60,6 +60,9 @@ dbn.formula <- function(nodes, ...)
                   is_dynamic = FALSE,
                   n_dynamic = 1,
                   self_depend = FALSE,
+                  is_decision = FALSE,
+                  is_utility = FALSE,
+                  is_deterministic = FALSE,
                   model = lapply(dag_str[["parent_list"]], function(x) NULL))
   
   structure(list(network = nodes,
