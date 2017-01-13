@@ -1,0 +1,71 @@
+#' @name dbn
+#' @title Dynamic Belief Network
+#' 
+#' @description Construct a Dynamic Belief Network.  DBNs contain information 
+#'   regarding how nodes and variables relate to each other. Relationships 
+#'   may be defined over time with dynamic variables, and may also contain 
+#'   static variables that do not change over time.
+#'   
+#' @param nodes Either a \code{formula} or a \code{list} of models.
+#' @param max_t \code{numeric(1)}, integerish. Determines the maximum 
+#'   time points to extend the model. The initial time point is assumed to
+#'   be \code{t = 0}.
+#'   
+#' @section Functional Requirements (General):
+#' \enumerate{
+#'  \item{A generic that has \code{formula} and \code{list} methods}
+#'  \item{\code{dbn} objects consist of, at a minimum, a network formula,
+#'        an adjacency matrix, and a \code{tbl_df} object providing 
+#'        node attributes.}
+#'  \item{The \code{tbl_df} object contains, at a minimum, columns for 
+#'        the node names; the parents; flags for decision, utility, and 
+#'        deterministic nodes; and a model object.}
+#'  \item{Provides an argument that accepts an integerish value indicating 
+#'        the number of time periods over which the network may be observed.}
+#' }   
+#'   
+#' @export
+
+dbn <- function(nodes, max_t = 0, ...)
+{
+  UseMethod("dbn")
+}
+
+#' @rdname dbn
+#' @section Functional Requirements (\code{formula} method):
+#' \enumerate{
+#'  \item{Allows for dynamic relationships to be defined
+#'        in terms of time \code{t} within square brackets}
+#'  \item{Dynamic relationships may be defined relative to time \code{t} 
+#'        using syntax such as \code{t - 1}.}
+#'  \item{Dynamic relationships may not be defined to depend on future
+#'        events, i.e. \code{t + 1}.}
+#'  \item{Dynamic relationship time designations must be integerish with
+#'        where \code{t} is non-negative.}
+#'  \item{\code{dbn} returns an object of class \code{dbn}.}
+#'  \item{The list method converts existing model objects into }
+#' }   
+#' @export
+
+dbn.formula <- function(nodes, max_t = 0, ...)
+{
+  coll <- checkmate::makeAssertCollection()
+  
+  checkmate::assert_integerish(x = max_t,
+                               min = 0,
+                               len = 1,
+                               add = coll)
+}
+
+#' @rdname dbn
+#' @section Functional Requirements (\code{formula} method):
+#' \enumerate{
+#'  \item{The list method converts existing model objects into a 
+#'        \code{dbn} structure.}
+#' }   
+#' @export
+
+dbn.list <- function(nodes, ...)
+{
+  
+}
