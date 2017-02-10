@@ -55,6 +55,27 @@ dbn.formula <- function(nodes, max_t = 0, ...)
                                min = 0,
                                len = 1,
                                add = coll)
+  
+  dag_str <- dag_structure(nodes)
+  
+  node_attr <- 
+    tibble::data_frame(
+      node_name = dag_str[["root_node"]],
+      parent = lapply(dag_str[["root_parent"]], identity),
+      is_dynamic = dag_str[["is_dynamic"]],
+      max_t = max_t,
+      is_decision = FALSE,
+      is_utility = FALSE,
+      is_deterministic = FALSE,
+      model = lapply(dag_str[["root_node"]], function(x) NULL),
+      node_name_raw = dag_str[["raw_node"]],
+      parent_raw = lapply(dag_str[["raw_parent"]], identity)
+    )
+  
+  structure(list(network = nodes,
+                 # adjacency_matrix = dag_str[["adjacency_matrix"]],
+                 node_attr = node_attr),
+            class = "dbn")
 }
 
 #' @rdname dbn
@@ -67,5 +88,5 @@ dbn.formula <- function(nodes, max_t = 0, ...)
 
 dbn.list <- function(nodes, ...)
 {
-  
+  message("This method is not yet implemented")
 }
