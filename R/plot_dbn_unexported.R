@@ -316,7 +316,7 @@ plot_dbn_get_subgraph <- function(network)
       {
         if (dynamic)
         {
-          sprintf("%s_%s",
+          sprintf("'%s_%s'",
                   node,
                   0:time)
         }
