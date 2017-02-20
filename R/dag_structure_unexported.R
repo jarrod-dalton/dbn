@@ -1,5 +1,14 @@
 #' @name dag_structure_unexported
+#' @aliases dag_structure_remove_temporal_suffix
+#' @aliases dag_structure_get_node_and_parent
+#' @aliases dag_structure_get_node_str
+#' @aliases dag_structure_get_future_dependency
+#' @aliases dag_structure_get_parent_list
+#' 
 #' @title Unexported Utilities for \code{dag_structure}
+#' 
+#' @description Utilities used by \code{dag_structure} to generate the 
+#'   core structure of the \code{dbn} object.
 #' 
 #' @details These utilities are used to support the \code{dag_structure} 
 #'   function.  They are not intended to be exposed to the user and 
@@ -29,6 +38,35 @@
 #' @param node_str A character vector of node definitions. It is assumed
 #'   that these come from the formula definition.
 
+
+#' @param fm A formula object defining the network
+
+dag_structure_get_node_str <- function(fm)
+{
+  node_str <- deparse(fm)
+  node_str <- paste0(node_str, collapse = " ")
+  node_str <- trimws(node_str)
+  sub(pattern = "^.*?[~]", 
+      replacement = "", 
+      x = node_str,
+      perl = TRUE)
+}
+
+#' @rdname dag_structure_unexported
+
+dag_structure_get_future_dependency <- function(node_str)
+{
+  matched <- 
+    gregexpr(pattern = "\\[[^]+]+[+,*,/][^]]+\\]",
+             text = node_str,
+             perl = TRUE) 
+  
+  regmatches(x = node_str,
+             m = matched)[[1]]
+}
+
+#' @rdname dag_structure_unexported
+
 dag_structure_remove_temporal_suffix <- function(node_str)
 {
   gsub(pattern = "(?=\\[).*?(?<=\\])",
@@ -47,7 +85,7 @@ dag_structure_get_node_and_parent <- function(node_str)
                               split = "[|]")
   node_and_parent <- do.call("rbind", node_and_parent)
   node_and_parent <- trimws(node_and_parent)
-
+  
   #* identify implicit parents
   #* These are parents that are not given their own node definition 
   #* in the formula.
@@ -57,7 +95,7 @@ dag_structure_get_node_and_parent <- function(node_str)
       function(x) unlist(strsplit(x, split = "[*]"))
     ) 
   implicit_parent <- lapply(X = implicit_parent,
-                           FUN = trimws) 
+                            FUN = trimws) 
   implicit_parent <- unlist(implicit_parent)
   implicit_parent <- unique(implicit_parent)
   implicit_parent <- sub(pattern = "(?=\\[).*?(?<=\\])",
@@ -74,34 +112,7 @@ dag_structure_get_node_and_parent <- function(node_str)
               rep("", length(implicit_parent))))
 }
 
-#' @rdname dag_structure2
-#' @param fm A formula object defining the network
-
-dag_structure_get_node_str <- function(fm)
-{
-  node_str <- deparse(fm)
-  node_str <- paste0(node_str, collapse = " ")
-  node_str <- trimws(node_str)
-  sub(pattern = "^.*?[~]", 
-      replacement = "", 
-      x = node_str,
-      perl = TRUE)
-}
-
-#' @rdname dag_structure2
-
-dag_structure_get_future_dependency <- function(node_str)
-{
-  matched <- 
-    gregexpr(pattern = "\\[[^]+]+[+,*,/][^]]+\\]",
-             text = node_str,
-             perl = TRUE) 
-  
-  regmatches(x = node_str,
-             m = matched)[[1]]
-}
-
-#' @rdname dag_structure2
+#' @rdname dag_structure_unexported
 #' @param edge A character matrix. The first column is a node. The 
 #'   second column is character string of parents.
 
@@ -110,6 +121,6 @@ dag_structure_get_parent_list <- function(edge)
   parent_list <- strsplit(edge[, 2], split = "[*]")
   parent_list <- lapply(parent_list,
                         function(e) trimws(e[e != ""]))
-  setNames(parent_list,
+  stats::setNames(parent_list,
            trimws(edge[, 1]))
 }

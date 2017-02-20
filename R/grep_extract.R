@@ -1,7 +1,7 @@
 #' @name grep_extract
 #' @title Extract a Character String Using a Regular Expression
 #' 
-#' @describe Extracts a substring from a character string based on a 
+#' @description Extracts a substring from a character string based on a 
 #'   regular expression.  This is similar to \code{stringr::str_extract}, 
 #'   but relies only on base \code{R} methods.
 #'   

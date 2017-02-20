@@ -1,6 +1,40 @@
-#' @name dag_structure2
+#' @name dag_structure
 #' @title Convert a formula into an adjacency matrix
 #' 
+#' @description Builds the core structure of the \code{dbn} object.
+#' 
+#' @param fm A formula object with no left hand side. See Details in 
+#' \code{\link{dbn}}.
+#' @param coll An optional \code{assertCollection} object for returning
+#'   validation errors.
+#'   
+#' @return When successful, a list is returned with the following elements
+#' \itemize{
+#'  \item{\code{edge} }{A two column matrix. The first column lists the 
+#'    nodes in the network. The second column shows the parents for the
+#'    respective nodes. The parents are separated by a \code{*}}
+#'  \item{\code{raw_edge} }{Similar to \code{edge}, but the nodes and parents
+#'    also display the time dependency structure.}
+#'  \item{\code{root_node} }{A vector naming the nodes in the network.}
+#'  \item{\code{raw_node} }{Similar to \code{node}, but the nodes are 
+#'    displayed with the \code{[t]} suffix if they are dynamic.}
+#'  \item{\code{root_parent} }{A list of vectors, one for each node, naming the 
+#'    parents of the node.}
+#'  \item{\code{raw_parent} }{A list of vectors, one for each node, naming the
+#'    parents of the node, but with the time dependency suffix.}
+#'  \item{\code{is_dynamic} }{A logical vector indicating if each node is 
+#'    dynamic.}
+#' }
+#'   
+#' @section Functional Requirements:
+#' \enumerate{
+#'   \item Return an error when \code{fm} is not a formula.
+#'   \item Return an error when \code{fm} has a left hand side.
+#'   \item Return an error if a dynamic dependency refers to a 
+#'     future time point (such as \code{t + 1}).
+#'   \item Return a list when successful.
+#' }
+#'
 
 dag_structure <- function(fm, coll = NULL){
 
@@ -12,11 +46,13 @@ dag_structure <- function(fm, coll = NULL){
   checkmate::assertClass(x = fm,
                          classes = "formula")
   
-  
-  coll <- checkmate::makeAssertCollection()
+  if (is.null(coll))
+  {
+    coll <- checkmate::makeAssertCollection()
+  }
   
   #* `fm` has no left hand side
-  lhs <- all.vars(update(fm, . ~ 0))
+  lhs <- all.vars(stats::update(fm, . ~ 0))
   
   if (!all(lhs == ".")) 
   {
@@ -28,7 +64,7 @@ dag_structure <- function(fm, coll = NULL){
   #* hard to make a formula with no right hand side.  
   #* (R won't let you do it) I'm leaving the check in place, 
   #* but it will go untested
-  nodes <- all.vars(update(fm, 0 ~ .))
+  nodes <- all.vars(stats::update(fm, 0 ~ .))
   
   if (all(nodes == "."))
   {
@@ -98,3 +134,5 @@ dag_structure <- function(fm, coll = NULL){
        raw_parent = raw_parent,
        is_dynamic = is_dynamic)
 }
+
+utils::globalVariables(c("."))

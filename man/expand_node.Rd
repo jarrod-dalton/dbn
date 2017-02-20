@@ -15,7 +15,7 @@ expand_node(node, time, dynamic)
 }
 \description{
 Appends the \code{_n} suffix to the root node. Presumably,
-  this is of interest in plotting the expanded network.
+  this is only of interest in plotting the expanded network.
 }
 \section{Functional Requirements}{
 

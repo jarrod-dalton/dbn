@@ -17,6 +17,11 @@ substrings.}
 
 \item{...}{Additional arguments to pass to \code{\link{gregexpr}}.}
 }
+\description{
+Extracts a substring from a character string based on a 
+  regular expression.  This is similar to \code{stringr::str_extract}, 
+  but relies only on base \code{R} methods.
+}
 \section{Functional Requirements}{
 
 \enumerate{

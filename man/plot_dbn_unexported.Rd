@@ -32,21 +32,33 @@ plot_dbn_get_shared_parent(node, parent, Node)
 plot_dbn_get_edge_text(parent, node, shared_parent, custom_edge)
 }
 \arguments{
-\item{network}{A network object, passed from \code{plot.dbn}}
+\item{network}{A network object, passed from \code{plot.dbn}.}
 
-\item{expand}{\code{logical(1)}, passed from \code{plot.dbn}}
+\item{expand}{\code{logical(1)}, passed from \code{plot.dbn}.}
 
 \item{node}{\code{character(1)} naming a node in the network.  This should
 be one of the values in \code{network$node_attr$node_name}.}
 
 \item{node_attr, }{the \code{network$node_attr} object.}
 
-\item{node_name}{Character vector of node names}
+\item{node_name}{Character vector of node names.}
 
-\item{parent}{\code{character(1)} giving a parent of \code{node}}
+\item{custom_node}{The \code{custom_node} argument from the \code{plot.dbn}
+call.}
+
+\item{custom_edge}{The \code{custom_edge} argument from the \code{plot.dbn}
+call.}
+
+\item{custom_edge_name}{The names of the \code{custom_edge} argument 
+from the \code{plot.dbn} call.}
+
+\item{Node}{The \code{Node} object generated in \code{plot.dbn}. This 
+holds the expanded node structure.}
+
+\item{parent}{\code{character(1)} giving a parent of \code{node}.}
 
 \item{shared_parent}{The \code{tbl_df} object
-returned by \code{get_shared_parent}}
+returned by \code{get_shared_parent}.}
 }
 \description{
 Utilities to support the \code{plot.dbn} method.  These 

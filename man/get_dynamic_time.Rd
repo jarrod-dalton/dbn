@@ -16,7 +16,7 @@ Returns the integer suffix appended to a dynamic node.
 
 \enumerate{
   \item Return the integer suffix at the end of a node name.
-  \item If the node is not dynamic, return \code{NA}.
+  \item If the node is not dynamic, return \code{numeric(0)}.
 }
 }
 \author{

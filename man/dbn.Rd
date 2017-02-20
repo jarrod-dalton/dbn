@@ -13,11 +13,15 @@ dbn(nodes, max_t = 0, ...)
 \method{dbn}{list}(nodes, ...)
 }
 \arguments{
-\item{nodes}{Either a \code{formula} or a \code{list} of models.}
+\item{nodes}{Either a \code{formula} or a \code{list} of models. See 
+Details.}
 
 \item{max_t}{\code{numeric(1)}, integerish. Determines the maximum 
 time points to extend the model. The initial time point is assumed to
 be \code{t = 0}.}
+
+\item{...}{Additional arguments to be passed to other methods. 
+Current ignored.}
 }
 \description{
 Construct a Dynamic Belief Network.  DBNs contain information 
@@ -25,15 +29,26 @@ Construct a Dynamic Belief Network.  DBNs contain information
   may be defined over time with dynamic variables, and may also contain 
   static variables that do not change over time.
 }
+\details{
+The formula object may not have a left hand side.  The right
+hand side is built with a syntax where a node is identified on the 
+left of a \code{|} (pipe) and its parents on the right.  If a node has 
+multiple parents, they are separated by a \code{*} (asterisk).  Thus
+\code{q | a * b} identifies the node \code{q} with parents. Add additional
+ nodes with the \code{+} operator (e.g. \code{q | a * b + a | c * d}). 
+ There is no limit to how often a node may appear in the parents.  Any nodes
+ that are listed in the parents but not as a specific node will still be
+ identified as a node, but with no parents.
+}
 \section{Functional Requirements (General)}{
 
 \enumerate{
  \item{A generic that has \code{formula} and \code{list} methods}
- \item{\code{dbn} objects consist of, at a minimum, a network formula,
-       an adjacency matrix, and a \code{tbl_df} object providing 
+ \item{\code{dbn} objects consist of, at a minimum, a network formula
+       and a \code{tbl_df} object providing 
        node attributes.}
  \item{The \code{tbl_df} object contains, at a minimum, columns for 
-       the node names; the parents; flags for decision, utility, and 
+       the node names; the parents; flags for dynamic, decision, utility, and 
        deterministic nodes; and a model object.}
  \item{Provides an argument that accepts an integerish value indicating 
        the number of time periods over which the network may be observed.}

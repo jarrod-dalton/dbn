@@ -2,7 +2,7 @@
 #' @title Convert Root Node to Temporal Node
 #' 
 #' @description Appends the \code{_n} suffix to the root node. Presumably,
-#'   this is of interest in plotting the expanded network.
+#'   this is only of interest in plotting the expanded network.
 #'   
 #' @param node \code{character(1)} naming a root node
 #' @param time \code{numeric(1)} giving \code{max_t} value for the node

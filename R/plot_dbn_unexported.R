@@ -5,15 +5,23 @@
 #' are not intended to be exposed to the user and may not receive the 
 #' same rigor in argument checking or functional requirements.
 #' 
-#' @param network A network object, passed from \code{plot.dbn}
-#' @param expand \code{logical(1)}, passed from \code{plot.dbn}
-#' @param node_name Character vector of node names
+#' @param custom_node The \code{custom_node} argument from the \code{plot.dbn}
+#'   call.
+#' @param custom_edge The \code{custom_edge} argument from the \code{plot.dbn}
+#'   call.
+#' @param custom_edge_name The names of the \code{custom_edge} argument 
+#'   from the \code{plot.dbn} call.
+#' @param expand \code{logical(1)}, passed from \code{plot.dbn}.
+#' @param network A network object, passed from \code{plot.dbn}.
+#' @param Node The \code{Node} object generated in \code{plot.dbn}. This 
+#'   holds the expanded node structure.
 #' @param node \code{character(1)} naming a node in the network.  This should
 #'   be one of the values in \code{network$node_attr$node_name}.
 #' @param node_attr, the \code{network$node_attr} object.
+#' @param node_name Character vector of node names.
+#' @param parent \code{character(1)} giving a parent of \code{node}.
 #' @param shared_parent The \code{tbl_df} object
-#'   returned by \code{get_shared_parent}
-#' @param parent \code{character(1)} giving a parent of \code{node}
+#'   returned by \code{get_shared_parent}.
 #' 
 #' @details 
 #' \code{plot_dbn_expand_network} Expands the network to relate each node with
@@ -75,7 +83,7 @@ plot_dbn_expand_network <- function(network, expand = FALSE)
     lapply(network[["node_attr"]][["node_name"]], 
            plot_dbn_expand_dynamic_network,
            network[["node_attr"]]) %>%
-      bind_rows()
+      dplyr::bind_rows()
   }
 }
 
@@ -136,7 +144,7 @@ plot_dbn_expand_dynamic_network <- function(node, node_attr)
                                           parent = p,
                                           stringsAsFactors = FALSE),
            n = expanded_node) 
-  expanded_node_and_parent <- bind_rows(expanded_node_and_parent)
+  expanded_node_and_parent <- dplyr::bind_rows(expanded_node_and_parent)
   expanded_node_and_parent <- 
     tidyr::separate(data = expanded_node_and_parent,
                     col = node,
@@ -195,8 +203,8 @@ plot_dbn_get_node_string <- function(node_name, custom_node)
   
   if (length(custom_node))
   {
-    custom_node <- get_star_node(node_name = node_name, 
-                                 custom_node = custom_node)
+    custom_node <- plot_dbn_get_star_node(node_name = node_name, 
+                                          custom_node = custom_node)
     
     index <- match(x = names(custom_node), 
                    table = node_name) 
@@ -311,7 +319,8 @@ plot_dbn_get_subgraph <- function(network)
            function(x)
            {
              sprintf("%s -> %s",
-                     head(x, length(x) - 1),
+                     utils::head(x, 
+                                 n = length(x) - 1),
                      x[-1])
            }) %>%
     vapply(FUN = paste0,
@@ -355,23 +364,23 @@ plot_dbn_sanitize_custom_edge <- function(custom_edge, custom_edge_name, Node)
         x = .)
   
   # The node from which the edge is drawn.  
-  # Sent through `get_star_node` to expand dynamic nodes
+  # Sent through `plot_dbn_get_star_node` to expand dynamic nodes
   
   edge_from <- sub(pattern = " .+$", 
                    replacement = "",
                    x = names(custom_edge)) %>%
     stats::setNames(nm = .) %>%
-    get_star_node(node_name = Node[["node"]], 
-                  custom_node = .)
+    plot_dbn_get_star_node(node_name = Node[["node"]], 
+                           custom_node = .)
   
   # The node to which the edge is drawn.
-  # Set through `get_star_node` to expand dynamic nodes
+  # Set through `plot_dbn_get_star_node` to expand dynamic nodes
   edge_to <- sub(pattern = "^.+ ", 
                  replacement = "",
                  x = names(custom_edge)) %>%
     stats::setNames(nm = .) %>%
-    get_star_node(node_name = Node[["node"]], 
-                  custom_node = .)
+    plot_dbn_get_star_node(node_name = Node[["node"]], 
+                           custom_node = .)
   
   # Get the star-expanded edge listing
   edge_expand <- 
@@ -407,7 +416,7 @@ plot_dbn_write_edge <- function(Node, custom_edge = custom_edge)
   if (length(custom_edge))
   {
     custom_edge <- 
-      mapply(sanitize_custom_edge,
+      mapply(plot_dbn_sanitize_custom_edge,
              custom_edge = custom_edge,
              custom_edge_name = names(custom_edge),
              MoreArgs = list(Node = Node),
@@ -531,3 +540,8 @@ plot_dbn_get_edge_text <- function(parent, node, shared_parent, custom_edge)
           if (edge_def =="") edge_def 
           else sprintf("[%s]", edge_def))
 }
+
+utils::globalVariables(
+  c(".",       "node_diff",    "node_time", 
+    "parent",  "parent_time",  "shared_parent_set")
+)
