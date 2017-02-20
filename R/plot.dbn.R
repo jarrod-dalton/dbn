@@ -216,7 +216,7 @@ plot.dbn <- function(x,
         "}"),
       paste0(custom_general,           # GENERAL GRAPH SETTINGS
              collapse = "\n  "),
-      paste0(unique(nodes),                    # NODE DEFINITIONS
+      paste0(unique(nodes),   # NODE DEFINITIONS
              collapse = "\n  "),
       paste0(subgraph,
              collapse = "\n  "),

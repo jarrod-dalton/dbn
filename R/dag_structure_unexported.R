@@ -83,6 +83,13 @@ dag_structure_get_node_and_parent <- function(node_str)
   #* and the parents into the second.
   node_and_parent <- strsplit(x = node_str, 
                               split = "[|]")
+  node_and_parent <-
+    lapply(node_and_parent,
+           function(x)
+           {
+             if (length(x) == 1) c(x, "")
+             else x
+           })
   node_and_parent <- do.call("rbind", node_and_parent)
   node_and_parent <- trimws(node_and_parent)
   
@@ -98,6 +105,7 @@ dag_structure_get_node_and_parent <- function(node_str)
                             FUN = trimws) 
   implicit_parent <- unlist(implicit_parent)
   implicit_parent <- unique(implicit_parent)
+  implicit_parent <- implicit_parent[!is.na(implicit_parent)]
   implicit_parent <- sub(pattern = "(?=\\[).*?(?<=\\])",
                          replacement = "[t]",
                          x = implicit_parent,

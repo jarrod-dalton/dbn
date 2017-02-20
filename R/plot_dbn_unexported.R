@@ -96,8 +96,19 @@ plot_dbn_expand_dynamic_network <- function(node, node_attr)
   checkmate::assert_class(x = node_attr,
                           classes = "data.frame")
   
+  node_is_dynamic <- node_attr[node_attr[["node_name"]] == node, "is_dynamic"]
+  
   parent <- unlist(node_attr[node_attr[["node_name"]] == node, "parent"])
   if (!length(parent)) parent <- NA
+  
+  if (!node_is_dynamic)
+  {
+    return(
+      expand.grid(node = node,
+                  parent = parent,
+                  stringsAsFactors = FALSE)
+    )
+  }
   
   parent_raw <- unlist(node_attr[node_attr[["node_name"]] == node, "parent_raw"])
   if (!length(parent_raw)) parent_raw <- NA
@@ -113,7 +124,6 @@ plot_dbn_expand_dynamic_network <- function(node, node_attr)
                                        parent)
   
   time <- node_attr[node_attr[["node_name"]] == node, "max_t"]
-  node_is_dynamic <- node_attr[node_attr[["node_name"]] == node, "is_dynamic"]
   
   parent_is_dynamic <- 
     grepl(pattern = "(?=\\[).*?(?<=\\])",
@@ -213,9 +223,17 @@ plot_dbn_get_node_string <- function(node_name, custom_node)
     index <- index[!is.na(index)]
     
     node_name[index] <- 
-      sprintf("%s [%s]",
+      sprintf("'%s' [%s]",
               node_name[index],
               custom_node)
+    node_name[-index] <- 
+      sprintf("'%s'",
+              node_name[-index])
+  }
+  else
+  {
+    node_name <- sprintf("'%s'",
+                        node_name)
   }
   
   node_name
@@ -534,7 +552,7 @@ plot_dbn_get_edge_text <- function(parent, node, shared_parent, custom_edge)
     paste(collapse = ",")
   
   # Edge code
-  sprintf("%s -> %s %s",
+  sprintf("'%s' -> '%s' %s",
           parent,
           node,
           if (edge_def =="") edge_def 
