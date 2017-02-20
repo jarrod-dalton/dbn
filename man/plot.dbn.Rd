@@ -4,12 +4,16 @@
 \alias{plot.dbn}
 \title{Plot Dynamic Bayesian Network Objects}
 \usage{
-\method{plot}{dbn}(x, custom_node = character(0),
+\method{plot}{dbn}(x, expand = FALSE, custom_node = character(0),
   custom_edge = character(0), custom_general = character(0), ...,
   display_code = FALSE)
 }
 \arguments{
 \item{x}{A \code{dbn} object.}
+
+\item{expand}{\code{logical(1)}. When \code{TRUE}, the plot is expanded
+to display dynamic nodes over time.  Otherwise, only the root node 
+dependencies are shown.}
 
 \item{custom_node}{A named \code{vector} of customizations to assign to nodes.
 Named nodes that do not exist in the network are ignored.}

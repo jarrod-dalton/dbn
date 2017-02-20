@@ -1,5 +1,3 @@
-library(testthat)
-library(checkmate)
-library(dbn)
-
+library("testthat")
+library("checkmate")
 test_check("dbn")

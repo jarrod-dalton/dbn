@@ -14,11 +14,10 @@ Imports:
     DiagrammeR (>= 0.8),
     dplyr,
     magrittr,
-    stringr,
-    tibble
+    tibble,
+    tidyr
 Suggests:
     knitr,
-    survival,
     testthat
 VignetteBuilder: knitr
 SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)

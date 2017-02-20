@@ -1,107 +1,106 @@
 #' @name dbn
-#' @title Dynamic Bayesian Network
+#' @title Dynamic Belief Network
 #' 
-#' @description Generate a Dynamic Bayesian Network.  This section needs more 
-#'   detail as well.  As the crux of the package, perhaps a brief introduction
-#'   to the topic and its application.  Maybe wait until the first 
-#'   vignette is written, and copy content from there?
+#' @description Construct a Dynamic Belief Network.  DBNs contain information 
+#'   regarding how nodes and variables relate to each other. Relationships 
+#'   may be defined over time with dynamic variables, and may also contain 
+#'   static variables that do not change over time.
 #'   
-#' @param nodes Either a formula that defines the network (see Details) 
-#'   or a list of model objects.
-#' @param ... additional arguments for other methods. currently ignored.
-#' 
-#' @details 
-#' The formula is used to identify nodes and their parentage.  A node 
-#' definition may be of the format \code{~ [node] | [parent1] * [parent2]}. 
-#' Mutliple nodes may be defined by adding them with the \code{+} operator 
-#' (\code{~ node1 | parent1 * parent2 + node2 | parent3}).
-#' 
-#' It is permissible to include a node only as a parent; it will still be 
-#' identified as a distinct node in the network.  Each node that has at least 
-#' one parent will need to have its own entry in the formula.
-#' 
-#' @return 
-#' Returns a \code{dbn} object with attributes to be described:
-#' 
-#' @section Functional Requirements:
+#' @param nodes Either a \code{formula} or a \code{list} of models. See 
+#'   Details.
+#' @param max_t \code{numeric(1)}, integerish. Determines the maximum 
+#'   time points to extend the model. The initial time point is assumed to
+#'   be \code{t = 0}.
+#' @param ... Additional arguments to be passed to other methods. 
+#'   Current ignored.
+#'   
+#' @details The formula object may not have a left hand side.  The right
+#' hand side is built with a syntax where a node is identified on the 
+#' left of a \code{|} (pipe) and its parents on the right.  If a node has 
+#' multiple parents, they are separated by a \code{*} (asterisk).  Thus
+#' \code{q | a * b} identifies the node \code{q} with parents. Add additional
+#'  nodes with the \code{+} operator (e.g. \code{q | a * b + a | c * d}). 
+#'  There is no limit to how often a node may appear in the parents.  Any nodes
+#'  that are listed in the parents but not as a specific node will still be
+#'  identified as a node, but with no parents.
+#'   
+#' @section Functional Requirements (General):
 #' \enumerate{
-#'   \item Accept a one sided formula for the network specification or a 
-#'     list of model objects.
-#'   \item Return an object of class \code{dbn}
-#'   \item The \code{dbn} object has as elements the original \code{nodes}
-#'     formula; The adjacency matrix for the network; a table of each node's
-#'     attributes.
-#'   \item The table of node attributes includes the following columns:
-#'     \code{node_name} (character(1)), \code{parents} (character vector),
-#'     \code{is_decision} (logical), \code{is_utility} (logical),
-#'     \code{is_temporal} (logical), \code{model} (an object to assist in 
-#'     simulation of posterior)
-#' }
-#' 
-#' @author Benjamin Nutter
-#' 
+#'  \item{A generic that has \code{formula} and \code{list} methods}
+#'  \item{\code{dbn} objects consist of, at a minimum, a network formula
+#'        and a \code{tbl_df} object providing 
+#'        node attributes.}
+#'  \item{The \code{tbl_df} object contains, at a minimum, columns for 
+#'        the node names; the parents; flags for dynamic, decision, utility, and 
+#'        deterministic nodes; and a model object.}
+#'  \item{Provides an argument that accepts an integerish value indicating 
+#'        the number of time periods over which the network may be observed.}
+#' }   
+#'   
 #' @export
 
-dbn <- function(nodes, ...)
+dbn <- function(nodes, max_t = 0, ...)
 {
   UseMethod("dbn")
 }
 
 #' @rdname dbn
+#' @section Functional Requirements (\code{formula} method):
+#' \enumerate{
+#'  \item{Allows for dynamic relationships to be defined
+#'        in terms of time \code{t} within square brackets}
+#'  \item{Dynamic relationships may be defined relative to time \code{t} 
+#'        using syntax such as \code{t - 1}.}
+#'  \item{Dynamic relationships may not be defined to depend on future
+#'        events, i.e. \code{t + 1}.}
+#'  \item{Dynamic relationship time designations must be integerish with
+#'        where \code{t} is non-negative.}
+#'  \item{\code{dbn} returns an object of class \code{dbn}.}
+#'  \item{The list method converts existing model objects into }
+#' }   
 #' @export
 
-dbn.formula <- function(nodes, ...)
+dbn.formula <- function(nodes, max_t = 0, ...)
 {
+  coll <- checkmate::makeAssertCollection()
+  
+  checkmate::assert_integerish(x = max_t,
+                               min = 0,
+                               len = 1,
+                               add = coll)
+  
+  checkmate::reportAssertions(coll)
+  
   dag_str <- dag_structure(nodes)
   
   node_attr <- 
-    tibble::data_frame(node_name = names(dag_str[["parent_list"]])) %>%
-    dplyr::mutate(parent = lapply(dag_str[["parent_list"]], identity),
-                  is_dynamic = FALSE,
-                  n_dynamic = 1,
-                  self_depend = FALSE,
-                  is_decision = FALSE,
-                  is_utility = FALSE,
-                  is_deterministic = FALSE,
-                  model = lapply(dag_str[["parent_list"]], function(x) NULL))
+    tibble::data_frame(
+      node_name = dag_str[["root_node"]],
+      parent = lapply(dag_str[["root_parent"]], identity),
+      is_dynamic = dag_str[["is_dynamic"]],
+      max_t = max_t,
+      is_decision = FALSE,
+      is_utility = FALSE,
+      is_deterministic = FALSE,
+      model = lapply(dag_str[["root_node"]], function(x) NULL),
+      node_name_raw = dag_str[["raw_node"]],
+      parent_raw = lapply(dag_str[["raw_parent"]], identity)
+    )
   
   structure(list(network = nodes,
-                 adjacency_matrix = dag_str[["adjacency_matrix"]],
                  node_attr = node_attr),
             class = "dbn")
 }
 
 #' @rdname dbn
+#' @section Functional Requirements (\code{formula} method):
+#' \enumerate{
+#'  \item{The list method converts existing model objects into a 
+#'        \code{dbn} structure.}
+#' }   
 #' @export
 
 dbn.list <- function(nodes, ...)
 {
-  #* convert the model formulae to a dbn formula
-  #* Pass this formula to `dbn.formula`
-  form <- 
-    lapply(nodes,
-           model_form_to_node_form) 
-  
-  #* Identify the response variable in each model
-  response_var <- sub(pattern = " [|].+$", 
-                      replacement = "",
-                      x = form)
-  
-  network <- 
-    form %>%
-    paste0(., collapse = " + ") %>%
-    sprintf("~ %s", .) %>%
-    as.formula() %>%
-    dbn.formula()
-  
-  #* match the name of the response variable to the 
-  #* row of its node name in the node attributes table
-  attr_row <- match(response_var,
-                    network[["node_attr"]][["node_name"]])
-  
-  #* Insert the models
-  network[["node_attr"]][["model"]][attr_row] <- 
-    nodes
-
-  network
+  message("This method is not yet implemented")
 }

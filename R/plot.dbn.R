@@ -5,6 +5,9 @@
 #'   the \code{DiagrammeR} package.
 #'   
 #' @param x A \code{dbn} object.
+#' @param expand \code{logical(1)}. When \code{TRUE}, the plot is expanded
+#'   to display dynamic nodes over time.  Otherwise, only the root node 
+#'   dependencies are shown.
 #' @param custom_node A named \code{vector} of customizations to assign to nodes.
 #'   Named nodes that do not exist in the network are ignored.
 #' @param custom_edge A named \code{vector} of customizations to assign to edges.
@@ -107,18 +110,23 @@
 #' @export
 
 plot.dbn <- function(x, 
+                     expand = FALSE,
                      custom_node = character(0), 
                      custom_edge = character(0), 
                      custom_general = character(0), ...,
                      display_code = FALSE)
 {
-# Argument Validations --------------------------------------------
+  # Argument Validations --------------------------------------------
   
   # The plotting method likes to deal with the customizations 
   # strings as vectors.  If lists were provided, the list is 
   # coerced to a vector after performing the check.
   # This behavior will be unobserved by the user.
   coll <- checkmate::makeAssertCollection()
+  
+  checkmate::assert_logical(x = expand,
+                            len = 1,
+                            add = coll)
   
   if (is.list(custom_node))
   {
@@ -169,16 +177,26 @@ plot.dbn <- function(x,
   
   checkmate::reportAssertions(coll)
   
-# Functional Code ---------------------------------------------------
-  Node <- expand_dynamic(Node = x[["node_attr"]])
+  # Functional Code ---------------------------------------------------
   
-  ranks <- get_rank_string(Node = x[["node_attr"]])
+  Node <- plot_dbn_expand_network(network = x,
+                                  expand = expand)
   
-  nodes <- get_node_string(node_name = Node[["node_name"]], 
-                           custom_node = custom_node)
-
-  edges <- write_edge(Node = Node,
-                      custom_edge = custom_edge)
+  nodes <- plot_dbn_get_node_string(node_name = Node[["node"]],
+                                    custom_node = custom_node)
+  
+  subgraph <- 
+    if (expand) 
+    {
+      plot_dbn_get_subgraph(network = x)
+    }
+    else
+    {
+      ""
+    }
+  
+  edges <- plot_dbn_write_edge(Node = Node,
+                               custom_edge = custom_edge)
   
   graph_code <- 
     sprintf(
@@ -188,17 +206,22 @@ plot.dbn <- function(x,
         "  %s\n\n",
         "  /* NODE DEFINITIONS */\n",
         "  %s\n\n",
+        "  /* SUBGRAPH DEFINITIONS */\n",
+        "  %s\n\n",
         "  /* RANK DEFINITIONS */\n",
         "  %s\n\n",
         "  /* EDGE DEFINITIONS */\n",
+        "  edge [style = '']\n",
         "  %s\n",
         "}"),
       paste0(custom_general,           # GENERAL GRAPH SETTINGS
              collapse = "\n  "),
-      paste0(nodes,                    # NODE DEFINITIONS
+      paste0(unique(nodes),   # NODE DEFINITIONS
              collapse = "\n  "),
-      paste0(ranks,                    # RANK DEFINITIONS
+      paste0(subgraph,
              collapse = "\n  "),
+      "", #paste0(ranks,                    # RANK DEFINITIONS
+          #   collapse = "\n  "),
       paste0(edges,                    # EDGE DEFINITIONS
              collapse = "\n  ")
     )
@@ -212,417 +235,3 @@ plot.dbn <- function(x,
                     engine = "neato")
 }
 
-
-
-
-# UNEXPORTED FUNCTIONS ----------------------------------------------
-
-#' @name plot.dbn_unexported
-#' @title Unexported Utilities for \code{plot.dbn}
-#' 
-#' @description Documentation for utilities that support the 
-#'   \code{plot.dbn} method.
-#'   
-#' @param Node The node attibutes data frame.  
-#' 
-#' @details \code{plot.dbn} will call \code{write_edge}, which in turn calls
-#'   \code{get_shared_parent} and \code{get_edge_text}.  The shared 
-#'   parents of two nodes are needed in order to determine when the 
-#'   \code{"[constraint=false]"} tag should be added to an edge.
-#'   This tag helps keep the dynamic nodes in proper alignment.
-#' 
-#' @author Benjamin Nutter
-#' 
-#' @section Functional Requirements:
-#' \enumerate{
-#'   \item \code{write_edge} returns one character string for each edge 
-#'     in the network.
-#'   \item \code{get_shared_parent} returns a vector naming the parents shared
-#'     between two nodes.
-#'   \item \code{get_edge_text} returns a character string defining a single 
-#'     edge.  
-#'   \item \code{get_edge_text} When drawing an edge between two nodes, if 
-#'     the parent is a shared parent, the \code{"[constraint=false]"} tag 
-#'     is added to the edge.
-#' }
-#' 
-
-expand_dynamic <- function(Node)
-{
-  Node <-
-    #* repeat dynamic rows 
-    #* See http://stackoverflow.com/questions/11121385/repeat-rows-of-a-data-frame
-    Node[rep(x = seq_len(nrow(Node)), 
-             times = Node[["n_dynamic"]]), ] %>%
-    dplyr::group_by(node_name) %>%
-    dplyr::mutate(dynamic_index = ifelse(test = is_dynamic, 
-                                         yes = seq_along(node_name),
-                                         no = NA)) %>%
-    dplyr::ungroup()
-  
-  for (i in 1:nrow(Node))
-  {
-    if (!is.na(Node[["dynamic_index"]][i]))
-    {
-      index <- Node[["dynamic_index"]][i]
-      parent <- 
-        Node[["parent"]][i] %>%
-        unlist
-      
-      this_index <- dplyr::filter(Node, 
-                                  dynamic_index == index & 
-                                    is_dynamic)
-      
-      parent[parent %in% this_index[["node_name"]]] <- sprintf("%s_%s",
-                                                               parent,
-                                                               index)
-      
-      if (Node[["self_depend"]][i] & index > 1)
-        parent <- c(parent, 
-                    sprintf("%s_%s", 
-                            Node[["node_name"]][i],
-                            index - 1))
-      
-      Node[["parent"]][i] <- list(parent)
-    }
-  }
-  
-  Node %>%
-    dplyr::mutate(node_name = ifelse(test = is.na(dynamic_index),
-                                     yes = node_name,
-                                     no = sprintf("%s_%s", 
-                                                  node_name,
-                                                  dynamic_index)))
-}
-
-#' @rdname plot.dbn_unexported
-
-get_rank_string <- function(Node)
-{
-  Node <- dplyr::filter(Node, self_depend)
-  
-  mapply(FUN = function(node, n) paste0(node, "_", 1:n),
-         node = Node[["node_name"]],
-         n = Node[["n_dynamic"]],
-         SIMPLIFY = FALSE) %>%
-    lapply(FUN = paste0,
-           collapse = "; ") %>%
-    vapply(FUN = function(x) sprintf("{rank=same; %s}", x),
-           FUN.VALUE = character(1))
-}
-
-#' @rdname plot.dbn_unexported
-#' @param node_name the \code{Node$node_name} vector.
-#' @param custom_node The \code{custom_node} argument from \code{plot.dbn}
-
-get_node_string <- function(node_name, custom_node)
-{
-  coll <- checkmate::makeAssertCollection()
-  
-  checkmate::assert_character(x = node_name,
-                              add = coll)
-  
-  checkmate::assert_character(x = custom_node,
-                              add = coll)
-  
-  checkmate::reportAssertions(coll)
-  
-  if (length(custom_node))
-  {
-    custom_node <- get_star_node(node_name = node_name, 
-                                 custom_node = custom_node)
-    
-    index <- match(x = names(custom_node), 
-                   table = node_name) 
-    
-    custom_node <- custom_node[!is.na(index)]
-    index <- index[!is.na(index)]
-    
-    node_name[index] <- 
-      sprintf("%s [%s]",
-              node_name[index],
-              custom_node)
-  }
-
-  node_name
-}
-
-#' @rdname plot.dbn_unexported
-
-get_star_node <- function(node_name, custom_node)
-{
-  coll <- checkmate::makeAssertCollection()
-  
-  checkmate::assert_character(x = node_name,
-                              add = coll)
-  
-  checkmate::assert_character(x = custom_node,
-                              add = coll)
-  
-  checkmate::reportAssertions(coll)
-  
-  #* Do any custom node entries have a * (as in, Y_*)
-  has_star <- grepl(pattern = "[*]$", 
-                    x = names(custom_node))
-  
-  #* If no stars, return custom_node unchanged.
-  if (!any(has_star)) 
-  {
-    return(custom_node)
-  }
-  
-  #* Flag for identifying starred custom_node elements
-  star_node <- custom_node[has_star] %>%
-    stats::setNames(sub("[*]$", "", names(.)))
-  
-  #* Match the names of the starred elements to node names
-  star_match <-
-    lapply(X = names(star_node),
-           FUN = function(patt, name) name[grep(patt, name)],
-           node_name)
-  
-  #* Expand the star definitions to include all of nodes of the same base
-  star_custom <-
-    mapply(
-      FUN = 
-        function(custom, name)
-        {
-          rep(x = custom, 
-              times = length(name)) %>%
-            stats::setNames(name)
-        },
-      custom = star_node,
-      name = star_match,
-      USE.NAMES = FALSE,
-      SIMPLIFY = FALSE
-    ) %>%
-    do.call("c", .)
-  
-  #* Make the complete custom nodes vector
-  custom_node <- c(custom_node[!has_star], star_custom) 
-  
-  #* Consolidate duplicated node names
-  vapply(
-    X = unique(names(custom_node)),
-    FUN = 
-      function(x, custom_node)
-      {
-        paste0(custom_node[names(custom_node) %in% x], collapse = ",")
-      },
-    custom_node = custom_node, 
-    FUN.VALUE = character(1)
-  )
-}
-
-#' @rdname plot.dbn_unexported
-
-sanitize_custom_edge <- function(custom_edge, custom_edge_name, Node)
-{
-  # To preserve the correct lengths, this needs to be used on
-  # one value at a time.  Ideally, this is passed through 
-  # an apply function.  Adding the `len = 1` ensure that 
-  # failures occur if not used in a manner that preserves the
-  # correct ordering of edges.
-  names(custom_edge) <- custom_edge_name
-  
-  checkmate::assert_character(x = custom_edge,
-                              names = "named",
-                              max.len = 1)
-  
-  # Remove white space from the name, and make sure the 
-  # edge is defined with a single space on each side of the arrow
-  names(custom_edge) <- 
-    gsub(pattern = "\\s",
-         replacement = "",
-         x = names(custom_edge)) %>%
-    sub(pattern = "(-[>])",
-        replacement = " \\1 ",
-        x = .)
-  
-  # The node from which the edge is drawn.  
-  # Sent through `get_star_node` to expand dynamic nodes
-  
-  edge_from <- sub(pattern = " .+$", 
-                   replacement = "",
-                   x = names(custom_edge)) %>%
-    stats::setNames(nm = .) %>%
-    get_star_node(node_name = Node[["node_name"]], 
-                  custom_node = .)
-  
-  # The node to which the edge is drawn.
-  # Set through `get_star_node` to expand dynamic nodes
-  edge_to <- sub(pattern = "^.+ ", 
-                 replacement = "",
-                 x = names(custom_edge)) %>%
-    stats::setNames(nm = .) %>%
-    get_star_node(node_name = Node[["node_name"]], 
-                  custom_node = .)
-  
-  # Get the star-expanded edge listing
-  edge_expand <- 
-    sprintf("%s -> %s", 
-            edge_from,
-            edge_to) %>%
-    stats::setNames(nm = sprintf("%s -> %s",
-                                 names(edge_from),
-                                 names(edge_to)))
-  
-  # Get the star-expanded custom edges
-  custom_edge <- 
-    custom_edge[edge_expand] %>%
-    stats::setNames(names(edge_expand))
-
-  # Combine elements with the same name 
-  distinct_edge <- unique(names(custom_edge))
-  
-  lapply(distinct_edge,
-         function(nm, custom_edge) paste0(custom_edge[nm],
-                                          collapse = ","),
-         custom_edge = custom_edge) %>%
-    stats::setNames(distinct_edge)
-}
-
-#' @rdname plot.dbn_unexported
-
-write_edge <- function(Node, custom_edge = custom_edge)
-{
-  checkmate::assert_class(x = Node,
-                          classes = "data.frame")
-  
-  if (length(custom_edge))
-  {
-    custom_edge <- 
-      mapply(sanitize_custom_edge,
-             custom_edge = custom_edge,
-             custom_edge_name = names(custom_edge),
-             MoreArgs = list(Node = Node),
-             SIMPLIFY = FALSE,
-             USE.NAMES = FALSE) %>%
-      unlist()
-  }
-
-  # make a data frame of all of the edges
-  node_map <- 
-    mapply(FUN = expand.grid,
-           node = Node[["node_name"]],
-           parent = Node[["parent"]],
-           MoreArgs = list(stringsAsFactors = FALSE),
-           SIMPLIFY = FALSE) %>%
-    dplyr::bind_rows()
-  
-  shared_parent <-
-    mapply(FUN = get_shared_parent,
-           node = node_map[["node"]],
-           parent = node_map[["parent"]],
-           MoreArgs = list(Node = Node),
-           SIMPLIFY = FALSE) %>%
-    dplyr::bind_rows() 
-  
-  mapply(FUN = get_edge_text,
-         parent = shared_parent[["parent"]],
-         node = shared_parent[["node"]],
-         MoreArgs = list(shared_parent = shared_parent,
-                         custom_edge = custom_edge),
-         SIMPLIFY = FALSE)
-}
-
-#' @rdname plot.dbn_unexported
-#' @param node \code{character(1)} giving a node in the network.
-#' @param parent \code{character(1)} giving a parent of \code{node}
-
-get_shared_parent <- function(node, parent, Node)
-{
-# Argument validations ----------------------------------------------
-  coll <- checkmate::makeAssertCollection()
-  
-  checkmate::assert_character(x = node,
-                              len = 1,
-                              add = coll)
-  
-  checkmate::assert_character(x = parent,
-                              len = 1,
-                              add = coll)
-  
-  checkmate::assert_class(x = Node,
-                          classes = "data.frame",
-                          add = coll)
-  
-  checkmate::reportAssertions(coll)
-  
-  shared <- 
-    intersect(
-      Node[["parent"]][Node[["node_name"]] == node] %>%
-        unlist(),
-      Node[["parent"]][Node[["node_name"]] == parent] %>%
-        unlist()
-    )
-  
-  tibble::data_frame(parent = parent,
-                     node = node,
-                     shared_parent_set = list(shared))
-}
-
-#' @rdname plot.dbn_unexported
-#' @param shared_parent The \code{tbl_df} object
-#'   returned by \code{get_shared_parent}
-
-get_edge_text <- function(parent, node, shared_parent, custom_edge)
-{
-  coll <- checkmate::makeAssertCollection()
-  
-  checkmate::assert_character(x = node,
-                              len = 1,
-                              add = coll)
-  
-  checkmate::assert_character(x = parent,
-                              len = 1,
-                              add = coll)
-  
-  checkmate::assert_class(x = shared_parent,
-                          classes = "data.frame",
-                          add = coll)
-  
-  checkmate::assert_character(x = custom_edge,
-                                add = coll)
-  
-  checkmate::reportAssertions(coll)
-  
-  # The regular expression strips out the appendix.
-  shared_root <- 
-    sub("_\\d{1,3}$", "", node) == sub("_\\d{1,3}$", "", parent)
-  
-  # Create a vector of shared parents for the node.
-  shared_parent <- 
-    shared_parent[shared_parent[["node"]] == node, ] %$%
-    shared_parent_set %>%
-    do.call("c", .)
-  
-  edge_def <- 
-    c(
-      # Constraint string
-      if (parent %in% shared_parent | shared_root)
-        "constraint=false"
-      else NULL,
-      
-      # Custom Edge definitions
-      if (!is.na(custom_edge[sprintf("%s -> %s", parent, node)]))
-        custom_edge[sprintf("%s -> %s", parent, node)]
-      else
-        NULL
-    ) %>%
-    paste(collapse = ",")
-  
-  # Edge code
-  sprintf("%s -> %s %s",
-          parent,
-          node,
-          if (edge_def =="") edge_def 
-          else sprintf("[%s]", edge_def))
-}
-
-# GLOBAL VARIABLE DECLARATIONS --------------------------------------
-
-utils::globalVariables(
-  c("node_name", "dynamic_index", "is_dynamic", "self_depend", 
-    "shared_parent_set")
-)

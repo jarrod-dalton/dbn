@@ -4,58 +4,45 @@
 \alias{dag_structure}
 \title{Convert a formula into an adjacency matrix}
 \usage{
-dag_structure(fm)
+dag_structure(fm, coll = NULL)
 }
 \arguments{
-\item{fm}{A formula object with no left side. See details for formula 
-structure.}
+\item{fm}{A formula object with no left hand side. See Details in 
+\code{\link{dbn}}.}
+
+\item{coll}{An optional \code{assertCollection} object for returning
+validation errors.}
 }
 \value{
-\code{dag_adj_matrix} returns an n x n matrix where n is the number of 
-distinct nodes identified in the formula.  A 0 entry indicates no edge
-exists between the nodes.  A 1 entry indicates an edge exists.
-
-\code{dag_parentage} returns a named list with one element for each 
-distinct node identified in the formula.  Each element is a character
-vector of the parents for that node.  If a node as no elements, the 
-entry is \code{character(0)}.
+When successful, a list is returned with the following elements
+\itemize{
+ \item{\code{edge} }{A two column matrix. The first column lists the 
+   nodes in the network. The second column shows the parents for the
+   respective nodes. The parents are separated by a \code{*}}
+ \item{\code{raw_edge} }{Similar to \code{edge}, but the nodes and parents
+   also display the time dependency structure.}
+ \item{\code{root_node} }{A vector naming the nodes in the network.}
+ \item{\code{raw_node} }{Similar to \code{node}, but the nodes are 
+   displayed with the \code{[t]} suffix if they are dynamic.}
+ \item{\code{root_parent} }{A list of vectors, one for each node, naming the 
+   parents of the node.}
+ \item{\code{raw_parent} }{A list of vectors, one for each node, naming the
+   parents of the node, but with the time dependency suffix.}
+ \item{\code{is_dynamic} }{A logical vector indicating if each node is 
+   dynamic.}
+}
 }
 \description{
-Building the network object requires an adjacency matrix to
-  identify relationships, and an indication of inheritance to identify 
-  which nodes inherit from which parents.  \code{dag_adj_matrix} creates
-  the adjacency  matrix, and \code{dag_parentage} identifies the parents 
-  for each node.
-}
-\details{
-The formula is used to identify nodes and their parentage.  A node 
-definition may be of the format \code{~ [node] | [parent1] * [parent2]}. 
-Mutliple nodes may be defined by adding them with the \code{+} operator 
-(\code{~ node1 | parent1 * parent2 + node2 | parent3}).
-
-It is permissible to include a node only as a parent; it will still be 
-identified as a distinct node in the network.  Each node that has at least 
-one parent will need to have its own entry in the formula.
-
-These functions are not strictly necessary, as the tasks they 
-perform could be done by the \code{gRbase} package. However, the 
-\code{gRbase} package depends on a couple of Bioconductor packages, and 
-I've had too many headaches with the testing and checking of packages 
-to include \code{RBGL}, so I'm just avoiding that headache.  I'm sure 
-I'll come to regret that eventually, but since I don't need to full 
-functionality of \code{gRbase}, I'll take my chances.
+Builds the core structure of the \code{dbn} object.
 }
 \section{Functional Requirements}{
 
 \enumerate{
- \item Require a one-sided formula with no left side.
- \item Return an n x n matrix where n is the number of distinct nodes
- \item Return a 0/1 matrix where 1 indicates the presence of an edge
- \item Return a named list with one element per node. Each element gives
-       the parents of that node
+  \item Return an error when \code{fm} is not a formula.
+  \item Return an error when \code{fm} has a left hand side.
+  \item Return an error if a dynamic dependency refers to a 
+    future time point (such as \code{t + 1}).
+  \item Return a list when successful.
 }
-}
-\author{
-Benjamin Nutter
 }
 
