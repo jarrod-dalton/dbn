@@ -31,5 +31,3 @@ test_that(
       expect_class(classes = "list")
   }
 )
-
-

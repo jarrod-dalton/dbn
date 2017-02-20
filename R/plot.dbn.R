@@ -170,7 +170,7 @@ plot.dbn <- function(x,
     checkmate::assert_character(x = custom_general,
                                 add = coll)
   }
-  
+
   checkmate::assert_logical(x = display_code,
                             len = 1,
                             add = coll)
@@ -230,7 +230,7 @@ plot.dbn <- function(x,
   {
     cat(graph_code)
   }
-  
+
   DiagrammeR::grViz(diagram = graph_code, 
                     engine = "neato")
 }

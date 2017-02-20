@@ -88,7 +88,6 @@ dbn.formula <- function(nodes, max_t = 0, ...)
     )
   
   structure(list(network = nodes,
-                 # adjacency_matrix = dag_str[["adjacency_matrix"]],
                  node_attr = node_attr),
             class = "dbn")
 }
