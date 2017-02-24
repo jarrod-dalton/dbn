@@ -199,7 +199,7 @@ plot_dbn_expand_dynamic_network <- function(node, node_attr)
 
 #' @rdname plot_dbn_unexported
 
-plot_dbn_get_node_string <- function(node_name, custom_node)
+plot_dbn_get_node_string <- function(node_name, custom_node, node_attr)
 {
   coll <- checkmate::makeAssertCollection()
   
@@ -210,6 +210,10 @@ plot_dbn_get_node_string <- function(node_name, custom_node)
                               add = coll)
   
   checkmate::reportAssertions(coll)
+  
+  node_name <- unique(node_name)
+  
+  node_type <- plot_dbn_get_node_type(node_name, node_attr)
   
   if (length(custom_node))
   {
@@ -223,20 +227,82 @@ plot_dbn_get_node_string <- function(node_name, custom_node)
     index <- index[!is.na(index)]
     
     node_name[index] <- 
-      sprintf("'%s' [%s]",
+      sprintf("'%s' [%s; %s]",
               node_name[index],
+              vapply(node_type[index],
+                     plot_dbn_get_node_default,
+                     character(1)),
               custom_node)
     node_name[-index] <- 
-      sprintf("'%s'",
-              node_name[-index])
+      sprintf("'%s' [%s]",
+              node_name[-index],
+              vapply(node_type[-index],
+                     plot_dbn_get_node_default,
+                     character(1)))
   }
   else
   {
-    node_name <- sprintf("'%s'",
-                        node_name)
+    node_name <- sprintf("'%s' [%s]",
+                        node_name,
+                        vapply(node_type,
+                               plot_dbn_get_node_default,
+                               character(1)))
   }
   
   node_name
+}
+
+#' @rdname plot_dbn_unexported
+
+plot_dbn_get_node_type <- function(node_name, node_attr)
+{
+  suffix <- grep_extract(node_name, 
+                         pattern = "_\\d{1,10}$")
+  
+  root_node <- 
+    mapply(sub,
+           pattern = paste0(suffix, "$"), 
+           x = node_name,
+           MoreArgs = list(replacement = ""),
+           SIMPLIFY = FALSE)
+  
+  dynamic <- node_attr[["node_name"]][node_attr[["is_dynamic"]]]
+  decision <- node_attr[["node_name"]][node_attr[["is_decision"]]]
+  utility <- node_attr[["node_name"]][node_attr[["is_utility"]]]
+  deterministic <- node_attr[["node_name"]][node_attr[["is_deterministic"]]]
+  
+  ifelse(
+    test = root_node %in% dynamic,
+    yes = "dynamic",
+    no = ifelse(
+      test = root_node %in% decision,
+      yes = "decision",
+      no = ifelse(
+        test = root_node %in% utility,
+        yes = "utility",
+        no = ifelse(
+          test = root_node %in% deterministic,
+          yes = "deterministic",
+          no = "generic")
+        )
+      )
+    )
+
+}
+
+#' @rdname plot_dbn_unexported
+
+plot_dbn_get_node_default <- function(node_type)
+{
+  checkmate::assert_character(x = node_type,
+                              len = 1)
+  def <- getOption("dbn_plot_node_default")[[node_type]]
+  paste0(
+    sprintf("%s = '%s'",
+            names(def),
+            def),
+    collapse = "; "
+  )
 }
 
 #' @rdname plot_dbn_unexported

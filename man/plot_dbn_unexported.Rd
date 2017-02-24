@@ -4,7 +4,9 @@
 \alias{plot_dbn_expand_dynamic_network}
 \alias{plot_dbn_expand_network}
 \alias{plot_dbn_get_edge_text}
+\alias{plot_dbn_get_node_default}
 \alias{plot_dbn_get_node_string}
+\alias{plot_dbn_get_node_type}
 \alias{plot_dbn_get_shared_parent}
 \alias{plot_dbn_get_star_node}
 \alias{plot_dbn_get_subgraph}
@@ -17,7 +19,11 @@ plot_dbn_expand_network(network, expand = FALSE)
 
 plot_dbn_expand_dynamic_network(node, node_attr)
 
-plot_dbn_get_node_string(node_name, custom_node)
+plot_dbn_get_node_string(node_name, custom_node, node_attr)
+
+plot_dbn_get_node_type(node_name, node_attr)
+
+plot_dbn_get_node_default(node_type)
 
 plot_dbn_get_star_node(node_name, custom_node)
 

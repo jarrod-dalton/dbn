@@ -84,6 +84,14 @@ dag_structure <- function(fm, coll = NULL){
                       paste0(future_dependency, collapse = "', '")))
   }
   
+  negative_dependency <- dag_structure_get_negative_dependency(node_str)
+  
+  if (length(negative_dependency))
+  {
+    coll$push(sprintf("Invalid (negative) dependencies found:'%s'",
+                      paste0(negative_dependency, collapse = "', '")))
+  }
+  
   checkmate::reportAssertions(coll)
   
 # Functional Code ---------------------------------------------------

@@ -3,6 +3,7 @@
 #' @aliases dag_structure_get_node_and_parent
 #' @aliases dag_structure_get_node_str
 #' @aliases dag_structure_get_future_dependency
+#' @aliases dag_structure_get_negative_dependency
 #' @aliases dag_structure_get_parent_list
 #' 
 #' @title Unexported Utilities for \code{dag_structure}
@@ -29,6 +30,10 @@
 #' \code{dag_structure_get_future_dependency} looks for and returns 
 #' nodes that are defined with a future dependence, such as \code{a[t + 1]}.
 #' Future dependencies are not permitted.
+#' 
+#' \code{dag_structure_get_negative_dependency} looks for and returns
+#' nodes that are defined with negative time dependenct, such as 
+#' \code{a[t - -1]}.  These dependencies are not permitted.
 #' 
 #' \code{dag_structure_get_parent_list} divides the parents in the second 
 #' column of the node and parents matrix into individual node identifiers.
@@ -58,6 +63,19 @@ dag_structure_get_future_dependency <- function(node_str)
 {
   matched <- 
     gregexpr(pattern = "\\[[^]+]+[+,*,/][^]]+\\]",
+             text = node_str,
+             perl = TRUE) 
+  
+  regmatches(x = node_str,
+             m = matched)[[1]]
+}
+
+#' @rdname dag_structure_unexported
+
+dag_structure_get_negative_dependency <- function(node_str)
+{
+  matched <- 
+    gregexpr(pattern = "\\[[^]+]+[-][^]]\\]",
              text = node_str,
              perl = TRUE) 
   

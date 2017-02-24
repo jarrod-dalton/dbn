@@ -2,6 +2,7 @@
 % Please edit documentation in R/dag_structure_unexported.R
 \name{dag_structure_unexported}
 \alias{dag_structure_get_future_dependency}
+\alias{dag_structure_get_negative_dependency}
 \alias{dag_structure_get_node_and_parent}
 \alias{dag_structure_get_node_str}
 \alias{dag_structure_get_parent_list}
@@ -12,6 +13,8 @@
 dag_structure_get_node_str(fm)
 
 dag_structure_get_future_dependency(node_str)
+
+dag_structure_get_negative_dependency(node_str)
 
 dag_structure_remove_temporal_suffix(node_str)
 
@@ -52,6 +55,10 @@ character vector.
 \code{dag_structure_get_future_dependency} looks for and returns 
 nodes that are defined with a future dependence, such as \code{a[t + 1]}.
 Future dependencies are not permitted.
+
+\code{dag_structure_get_negative_dependency} looks for and returns
+nodes that are defined with negative time dependenct, such as 
+\code{a[t - -1]}.  These dependencies are not permitted.
 
 \code{dag_structure_get_parent_list} divides the parents in the second 
 column of the node and parents matrix into individual node identifiers.

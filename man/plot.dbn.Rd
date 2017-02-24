@@ -106,8 +106,8 @@ for use in determining colors for use in network plots.
 Subjective Requirements (requirements for which formal tests will not be 
 written)
 \itemize{
- \item display passage of time over dynamic variables horizontally 
-       across the plot
+ \item display passage of time over dynamic variables vertically down 
+       the plot
  \item display dependencies vertically on the plot
  \item display static variables above the dynamic variables
 }
@@ -115,6 +115,10 @@ written)
 Objective Requirements
 
 \enumerate{
+  \item Cast an error when given an object that does not have class \code{dbn}.
+  \item Provide the user with the option to collapse dynamic nodes into 
+    a single-node representation or expand dynamic nodes across all 
+    timepoints.
   \item Accept a named vector or list of node customizations.
   \item Quietly ignore nodes named in \code{custom_node} that do 
     not exist in the network.
@@ -122,12 +126,100 @@ Objective Requirements
         appendix to apply changes to all of the nodes in the time stream.
   \item Accept a vector or list of graph customizations
   \item Accept a named vector or list of edge customizations.
-  \item Edge dustomizations for dynamic edges may use a \code{_*}
+  \item Edge customizations for dynamic edges may use a \code{_*}
         appendix to apply changes to all of the edges in the time stream.
   \item Quietly ignore nodes named in \code{custom_edge} that do 
     not exist in the network.
   \item White space will be ignored in the names of \code{custom_edge}
   \item Display GraphViz code to the console on request.
 }
+}
+\examples{
+################################
+### Static Network Examples ###
+################################
+
+static <- 
+ dbn(~ wells + 
+       pe | wells + 
+       d.dimer | pregnant*pe + 
+       angio | pe + 
+       treat | d.dimer*angio + 
+       death | pe*treat)
+       
+plot(static)
+
+# Changing a node attribute for a single node using a character vector 
+plot(static,
+     custom_node = c("d.dimer" = "color = purple"))
+     
+# Change node attributes for multiple nodes using a list
+plot(static,
+     custom_node = list(d.dimer = "color = purple",
+                        treat = "style = filled; fillcolor = green",
+                        pe = "shape = diamond; label = 'Pulmonary Embolism'"))
+
+# Change edge attributes for a single edge using a list
+plot(static,
+     custom_edge = list("wells -> pe" = "color = red; arrowhead = box"))
+ 
+# Change edge attribues for multiple edges using a character vector
+plot(static,
+     custom_edge = list("wells -> pe" = "color = red",
+                        "d.dimer -> treat" = "arrowhead = tee; color = purple"))
+
+# Change settings for all nodes and/or edges
+plot(static,
+     custom_general = c("node [shape = diamond; style = filled; color = yellow]",
+                        "edge [arrowhead = box; color = purple]"))
+                        
+################################
+### Dynamic Network Examples ###
+################################ 
+
+dynamic_net <-
+  dbn(~ Age + 
+        Sex + 
+        Q1[t] | Q2[t-1] * Q1[t-1] * Age * Sex + 
+        Q2[t] | Q1[t-1] * Age * Sex,
+       max_t = 2)
+       
+# Compact representation
+plot(dynamic_net)
+
+# Expanded representation
+plot(dynamic_net,
+     expand = TRUE)
+     
+# Customizing Nodes in the Expanded Representation
+plot(dynamic_net,
+     expand = TRUE,
+     custom_node = c("Q1_0" = "style = filled; fillcolor = purple",
+                     "Q1_2" = "style = filled; fillcolor = green",
+                     "Q2_1" = "style = filled; fillcolor = yellow"))
+                     
+# Customizing all nodes in a dynamic stream
+plot(dynamic_net,
+     expand = TRUE, 
+     custom_node = c("Q1_*" = "style = filled; fillcolor = purple",
+                     "Q2_*" = "style = filled; fillcolor = yellow"))
+                     
+# Customizing specific edges in a dynamic stream
+plot(dynamic_net,
+     expand = TRUE,
+     custom_edge = c("Q1_0 -> Q1_1" = "arrowhead = inv; color = purple",
+                     "Q2_0 -> Q1_1" = "arrowhead = box; color = green"))
+                     
+# Customizing all edges in a dynamic stream
+plot(dynamic_net,
+     expand = TRUE,
+     custom_edge = c("Q2_* -> Q1_*" = "arrowhead = box; color = purple"))
+     
+# NOTE: General settings may be applied to all nodes, and then overridden 
+#       for specific nodes.  The same applies to edges
+plot(dynamic_net,
+     expand = TRUE,
+     custom_general = "node [shape = diamond; style = filled; fillcolor = green]",
+     custom_node = c("Q2_1" = "shape = rect; fillcolor = purple"))
 }
 

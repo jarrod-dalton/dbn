@@ -58,8 +58,6 @@ multiple parents, they are separated by a \code{*} (asterisk).  Thus
 \section{Functional Requirements (\code{formula} method)}{
 
 \enumerate{
- \item{Allows for dynamic relationships to be defined
-       in terms of time \code{t} within square brackets}
  \item{Dynamic relationships may be defined relative to time \code{t} 
        using syntax such as \code{t - 1}.}
  \item{Dynamic relationships may not be defined to depend on future
@@ -67,7 +65,6 @@ multiple parents, they are separated by a \code{*} (asterisk).  Thus
  \item{Dynamic relationship time designations must be integerish with
        where \code{t} is non-negative.}
  \item{\code{dbn} returns an object of class \code{dbn}.}
- \item{The list method converts existing model objects into }
 }
 
 

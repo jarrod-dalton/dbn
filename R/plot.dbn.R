@@ -273,7 +273,8 @@ plot.dbn <- function(x,
                                   expand = expand)
   
   nodes <- plot_dbn_get_node_string(node_name = Node[["node"]],
-                                    custom_node = custom_node)
+                                    custom_node = custom_node,
+                                    node_attr = x[["node_attr"]])
   
   subgraph <- 
     if (expand) 
