@@ -222,4 +222,7 @@ plot(dynamic_net,
      custom_general = "node [shape = diamond; style = filled; fillcolor = green]",
      custom_node = c("Q2_1" = "shape = rect; fillcolor = purple"))
 }
+\seealso{
+\code{\link{dbn_plot_deafult}}, \code{\link[DiagrammeR]{grViz}}
+}
 

@@ -123,7 +123,7 @@ test_that(
 # This test does not determine if the output is correct.  It only states
 # that the using the star notation didn't kill the function.
 test_that(
-  paste0("FR 5: Node customizations for dynamic nodes may use a \code{_*} ",
+  paste0("FR 5: Node customizations for dynamic nodes may use a `_*`` ",
          "appendix to apply changes to all of the nodes in the time stream."),
   {
     expect_silent(
@@ -199,7 +199,7 @@ test_that(
 # This test does not determine if the output is correct.  It only states
 # that the using the star notation didn't kill the function.
 test_that(
-  paste0("Edge customizations for dynamic edges may use a \code{_*}",
+  paste0("Edge customizations for dynamic edges may use a `_*`",
          "appendix to apply changes to all of the edges in the time stream."),
   {
     expect_silent(

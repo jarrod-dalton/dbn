@@ -2,19 +2,72 @@
 % Please edit documentation in R/dbn_plot_default.R
 \name{dbn_plot_default}
 \alias{dbn_plot_default}
+\alias{dbn_restore_plot_default}
+\alias{dbn_set_plot_default}
 \title{Show and Modify \code{dbn} Default Settings for Plots}
+\source{
+GraphViz attributes \url{http://rich-iannone.github.io/DiagrammeR/graphviz_and_mermaid.html#attributes}
+}
 \usage{
 dbn_plot_default()
+
+dbn_set_plot_default(new_opt, replace = FALSE)
+
+dbn_restore_plot_default()
+}
+\arguments{
+\item{new_opt}{A list of named lists giving the new values to apply as 
+defaults.  See Details}
+
+\item{replace}{A \code{logical(1)}. If \code{TRUE}, the entire contents of 
+the current defaults are obliterated and replaced with what is in
+\code{new_opt}.  if \code{FALSE}, options that exist in the current 
+settings and \code{new_opt} are replaced with the \code{new_opt value}.
+Options that only exist in \code{new_opt} are added.  Options that
+only exist in the current options are not touched.}
 }
 \description{
 Display the current defaults used for plotting a dynamic 
   belief network.  Modifications may also be made.
+}
+\details{
+The list given to \code{new_opt} may contain lists that are 
+  named \code{generic}, \code{dynamic}, \code{decision}, 
+  \code{deterministic}, or \code{utility}. 
+  
+Each of those lists may have any number of named elements where the 
+name is the GraphViz attribute name (see References).
 }
 \section{Functional Requirements}{
 
 \enumerate{
   \item The non-assignment method returns a printed string for each node
         type showing the plotting parameters.
+  \item The assignment method accepts a named list where the name is one
+        of \code{decision}, \code{deterministic}, \code{dynamic}, 
+        \code{generic} or \code{utility}
+  \item Each of the named lists is a named list. The names of these lists
+        may be a valid GraphViz attribute.
+  \item The user may choose to replace all contents strictly with the 
+        contents of \code{new_opt}.
+  \item The user may choose to overwrite existing options with what is
+        in \code{new_opt} without altering existing options not in 
+        \code{new_opt}.
+  \item Items in \code{new_opt} that aren't listed in existing options are 
+        added.
 }
+}
+\examples{
+dbn_plot_default()
+
+dbn_set_plot_default(
+  list(generic = list(shape = 'triangle'),
+       dynamic = list(fillcolor = 'purple'))
+)
+
+dbn_plot_default()
+
+dbn_restore_plot_default()
+
 }
 

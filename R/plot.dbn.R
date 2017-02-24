@@ -22,6 +22,9 @@
 #' \code{plot.dbn} produces plots using GraphViz via the \code{DiagrammeR}
 #' package.  
 #' 
+#' @seealso 
+#' \code{\link{dbn_plot_deafult}}, \code{\link[DiagrammeR]{grViz}}
+#' 
 #' @section Customizing Nodes:
 #' Node attributes are customized by passing a named character vector (or 
 #' named list) in the \code{custom_node} argument.  Any node definitions 
