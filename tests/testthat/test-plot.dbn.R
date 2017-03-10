@@ -25,16 +25,20 @@ test_that(
 test_that(
   "Provide the user with the option to collapse dynamic nodes into a single-node representation or expand dynamic nodes across all timepoints.",
   {
-    plot(net, 
-         expand = TRUE)
+    expect_silent(
+      plot(net, 
+           expand = TRUE)
+    )
   }
 )
 
 test_that(
   "Provide the user with the option to collapse dynamic nodes into a single-node representation or expand dynamic nodes across all timepoints.",
   {
-    plot(net, 
-         expand = FALSE)
+    expect_silent(
+      plot(net, 
+           expand = FALSE)
+    )
   }
 )
 
@@ -145,13 +149,14 @@ test_that(
   }
 )
 
-test_that("FR 4: Accept a list of graph customizations",
-          {
-            expect_silent({
-              plot(net,
-                   custom_general = list("node [shape=circle]"))
-            })
-          })
+test_that(
+  "FR 4: Accept a list of graph customizations",
+  {
+    expect_silent({
+      plot(net,
+           custom_general = list("node [shape=circle]"))
+    })
+  })
 
 # Functional Requirement 7 ------------------------------------------
 

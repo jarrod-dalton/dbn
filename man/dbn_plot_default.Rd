@@ -70,4 +70,7 @@ dbn_plot_default()
 dbn_restore_plot_default()
 
 }
+\seealso{
+\code{\link{plot.dbn}}
+}
 

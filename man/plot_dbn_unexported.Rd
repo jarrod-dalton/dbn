@@ -52,6 +52,9 @@ be one of the values in \code{network$node_attr$node_name}.}
 \item{custom_node}{The \code{custom_node} argument from the \code{plot.dbn}
 call.}
 
+\item{node_type}{A \code{character(1)} that indicates the type of node 
+for the plot settings.}
+
 \item{custom_edge}{The \code{custom_edge} argument from the \code{plot.dbn}
 call.}
 

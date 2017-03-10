@@ -223,6 +223,8 @@ plot(dynamic_net,
      custom_node = c("Q2_1" = "shape = rect; fillcolor = purple"))
 }
 \seealso{
-\code{\link{dbn_plot_deafult}}, \code{\link[DiagrammeR]{grViz}}
+\code{\link{dbn_plot_default}}, \code{\link[DiagrammeR]{grViz}}
+
+\code{\link{dbn_plot_default}}
 }
 

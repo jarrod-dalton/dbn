@@ -22,6 +22,8 @@
 #' @param parent \code{character(1)} giving a parent of \code{node}.
 #' @param shared_parent The \code{tbl_df} object
 #'   returned by \code{get_shared_parent}.
+#' @param node_type A \code{character(1)} that indicates the type of node 
+#'   for the plot settings. 
 #' 
 #' @details 
 #' \code{plot_dbn_expand_network} Expands the network to relate each node with
@@ -226,6 +228,8 @@ plot_dbn_get_node_string <- function(node_name, custom_node, node_attr)
     custom_node <- custom_node[!is.na(index)]
     index <- index[!is.na(index)]
     
+    if (length(index))
+    {
     node_name[index] <- 
       sprintf("'%s' [%s; %s]",
               node_name[index],
@@ -239,6 +243,15 @@ plot_dbn_get_node_string <- function(node_name, custom_node, node_attr)
               vapply(node_type[-index],
                      plot_dbn_get_node_default,
                      character(1)))
+    }
+    else
+    {
+      node_name <- sprintf("'%s' [%s]",
+                           node_name,
+                           vapply(node_type,
+                                  plot_dbn_get_node_default,
+                                  character(1)))
+    }
   }
   else
   {
@@ -442,52 +455,69 @@ plot_dbn_sanitize_custom_edge <- function(custom_edge, custom_edge_name, Node)
   names(custom_edge) <- 
     gsub(pattern = "\\s",
          replacement = "",
-         x = names(custom_edge)) %>%
+         x = names(custom_edge)) 
+  names(custom_edge) <- 
     sub(pattern = "(-[>])",
         replacement = " \\1 ",
-        x = .)
+        x = names(custom_edge))
   
   # The node from which the edge is drawn.  
   # Sent through `plot_dbn_get_star_node` to expand dynamic nodes
   
   edge_from <- sub(pattern = " .+$", 
                    replacement = "",
-                   x = names(custom_edge)) %>%
-    stats::setNames(nm = .) %>%
-    plot_dbn_get_star_node(node_name = Node[["node"]], 
-                           custom_node = .)
+                   x = names(custom_edge))
+  names(edge_from) <- edge_from
+  edge_from <- plot_dbn_get_star_node(node_name = Node[["node"]], 
+                                      custom_node = edge_from)
   
   # The node to which the edge is drawn.
   # Set through `plot_dbn_get_star_node` to expand dynamic nodes
   edge_to <- sub(pattern = "^.+ ", 
                  replacement = "",
-                 x = names(custom_edge)) %>%
-    stats::setNames(nm = .) %>%
-    plot_dbn_get_star_node(node_name = Node[["node"]], 
-                           custom_node = .)
+                 x = names(custom_edge)) 
+  names(edge_to) <- edge_to
   
+  edge_to <- plot_dbn_get_star_node(node_name = Node[["node"]], 
+                                    custom_node = edge_to)
+  
+  # Escape hatch for when the node name doesn't exist in the network.
+  # Rather than cast an error, this quietly exits in a way that
+  # the non-existent node is simply ignored.
+  if (!length(edge_to)) return(character(0))
+
   # Get the star-expanded edge listing
   edge_expand <- 
-    sprintf("%s -> %s", 
-            edge_from,
-            edge_to) %>%
-    stats::setNames(nm = sprintf("%s -> %s",
-                                 names(edge_from),
-                                 names(edge_to)))
-  
+    expand.grid(edge_from = names(edge_from),
+                edge_to = names(edge_to),
+                stringsAsFactors = FALSE)
+
+  edge_expand <- 
+    dplyr::mutate(edge_expand,
+                  edge_def = sprintf("%s -> %s", 
+                                     edge_from,
+                                     edge_to)) 
+
+  edge_expand <- 
+    dplyr::filter(edge_expand,
+                  edge_def %in% sprintf("%s -> %s", 
+                                        Node[["parent"]], 
+                                        Node[["node"]])) 
+
   # Get the star-expanded custom edges
   custom_edge <- 
-    custom_edge[edge_expand] %>%
-    stats::setNames(names(edge_expand))
-  
+    rep(custom_edge, nrow(edge_expand)) 
+  names(custom_edge) <- edge_expand[["edge_def"]]
+
   # Combine elements with the same name 
   distinct_edge <- unique(names(custom_edge))
-  
-  lapply(distinct_edge,
-         function(nm, custom_edge) paste0(custom_edge[nm],
-                                          collapse = ","),
-         custom_edge = custom_edge) %>%
-    stats::setNames(distinct_edge)
+
+  out <- 
+    lapply(distinct_edge,
+           function(nm, custom_edge) paste0(custom_edge[nm],
+                                            collapse = ","),
+           custom_edge = custom_edge)
+  stats::setNames(out, distinct_edge)
 }
 
 #' @rdname plot_dbn_unexported
@@ -627,5 +657,6 @@ plot_dbn_get_edge_text <- function(parent, node, shared_parent, custom_edge)
 
 utils::globalVariables(
   c(".",       "node_diff",    "node_time", 
-    "parent",  "parent_time",  "shared_parent_set")
+    "parent",  "parent_time",  "shared_parent_set",
+    "edge_def")
 )

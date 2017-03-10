@@ -23,7 +23,7 @@
 #' package.  
 #' 
 #' @seealso 
-#' \code{\link{dbn_plot_deafult}}, \code{\link[DiagrammeR]{grViz}}
+#' \code{\link{dbn_plot_default}}, \code{\link[DiagrammeR]{grViz}}
 #' 
 #' @section Customizing Nodes:
 #' Node attributes are customized by passing a named character vector (or 
@@ -112,6 +112,8 @@
 #'   \item White space will be ignored in the names of \code{custom_edge}
 #'   \item Display GraphViz code to the console on request.
 #' }
+#' 
+#' @seealso \code{\link{dbn_plot_default}}
 #' 
 #' @examples 
 #' ################################

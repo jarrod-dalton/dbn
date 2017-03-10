@@ -25,6 +25,8 @@
 #' @source 
 #' GraphViz attributes \url{http://rich-iannone.github.io/DiagrammeR/graphviz_and_mermaid.html#attributes}
 #' 
+#' @seealso \code{\link{plot.dbn}}
+#' 
 #' @examples 
 #' dbn_plot_default()
 #' 
