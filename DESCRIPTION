@@ -18,6 +18,9 @@ Imports:
     tidyr
 Suggests:
     knitr,
+    nnet,
+    rms,
+    survival,
     testthat
 VignetteBuilder: knitr
 SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
