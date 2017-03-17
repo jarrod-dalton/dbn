@@ -2,29 +2,29 @@ context("model_to_node.R")
 
 require(rms)
 
-# # OLS data
-# x1 <- runif(200)
-# x2 <- runif(200)
-# x3 <- runif(200)
-# x4 <- runif(200)
-# y <- x1 + x2 + rnorm(200)
-# d <- data.frame(y, x1, x2, x3, x4)
-# 
-# # CPH data
-# n <- 1000
-# set.seed(731)
-# age <- 50 + 12*rnorm(n)
-# label(age) <- "Age"
-# sex <- factor(sample(c('Male','Female'), n, 
-#                      rep=TRUE, prob=c(.6, .4)))
-# cens <- 15*runif(n)
-# h <- .02*exp(.04*(age-50)+.8*(sex=='Female'))
-# dt <- -log(runif(n))/h
-# label(dt) <- 'Follow-up Time'
-# e <- ifelse(dt <= cens,1,0)
-# dt <- pmin(dt, cens)
-# units(dt) <- "Year"
-# dd <- datadist(age, sex)
+# OLS data
+x1 <- runif(200)
+x2 <- runif(200)
+x3 <- runif(200)
+x4 <- runif(200)
+y <- x1 + x2 + rnorm(200)
+d <<- data.frame(y, x1, x2, x3, x4)
+
+# CPH data
+n <- 1000
+set.seed(731)
+age <- 50 + 12*rnorm(n)
+label(age) <- "Age"
+sex <- factor(sample(c('Male','Female'), n,
+                     rep=TRUE, prob=c(.6, .4)))
+cens <- 15*runif(n)
+h <- .02*exp(.04*(age-50)+.8*(sex=='Female'))
+dt <- -log(runif(n))/h
+label(dt) <- 'Follow-up Time'
+e <- ifelse(dt <= cens,1,0)
+dt <- pmin(dt, cens)
+units(dt) <- "Year"
+dd <<- data.frame(e, dt, age, sex)
 
 
 # Functional Requirement 1 ------------------------------------------
@@ -43,17 +43,17 @@ test_that(
 # Functional Requirement 2 ------------------------------------------
 
 # I'm not sure why this isn't working, but it's a problem with rms
-# test_that(
-#   "Assume any node in a function is given as the first argument of the function.",
-#   {
-#     require(rms)
-#     f    <- ols(y ~ rcs(x1,4) + x2 + x3 + x4)
-#     expect_equal(
-#       model_to_node(f),
-#       "y | x1 * x2 * x3 * x4"
-#     )
-#   }
-# )
+test_that(
+  "Assume any node in a function is given as the first argument of the function.",
+  {
+    require(rms)
+    suppressWarnings(f    <- ols(y ~ rcs(x1,4) + x2 + x3 + x4))
+    expect_equal(
+      model_to_node(f),
+      "y | x1 * x2 * x3 * x4"
+    )
+  }
+)
 
 # Functional Requirement 1 (xtabs) ----------------------------------
 
@@ -154,46 +154,47 @@ test_that(
 )
 
 # I'm not sure why this isn't working, but it's a problem with rms
-# test_that(
-#   "Works with ols",
-#   {
-#     require(rms)
-#     options(datadist = "d")
-#     f    <- ols(y ~ rcs(x1,4) + x2 + x3 + x4, data = d)
-#     expect_equal(
-#       model_to_node(f),
-#         "y | x1 * x2 * x3 * x4"
-#     )
-#   }
-# )
+test_that(
+  "Works with ols",
+  {
+    require(rms)
+    options(datadist = "d")
+    suppressWarnings(f    <- ols(y ~ rcs(x1,4) + x2 + x3 + x4, data = d))
+    expect_equal(
+      model_to_node(f),
+        "y | x1 * x2 * x3 * x4"
+    )
+  }
+)
 
 # I'm not sure why this isn't working, but it's a problem with rms
-# test_that(
-#   "Works with lrm",
-#   {
-#     require(rms)
-#     x    <- 1:5
-#     y    <- c(0,1,0,1,0)
-#     reps <- c(1,2,3,2,1)
-#     f <- lrm(y ~ x, weights=reps)
-#     expect_equal(
-#       model_to_node(f),
-#       "y | x"
-#     )
-#   }
-# )
+test_that(
+  "Works with lrm",
+  {
+    require(rms)
+    x    <- 1:5
+    y    <- c(0,1,0,1,0)
+    reps <- c(1,2,3,2,1)
+    suppressWarnings(f <- lrm(y ~ x, weights=reps))
+    expect_equal(
+      model_to_node(f),
+      "y | x"
+    )
+  }
+)
 
 # I'm not sure why this isn't working, but it's a problem with rms
-# test_that(
-#   "Works with cph",
-#   {
-#     require(rms)
-# 
-#     options(datadist='dd')
-#     f <- cph(Surv(dt, e) ~ rcs(age,4) + sex, x=TRUE, y=TRUE, data = dd)
-#     expect_equal(
-#       model_to_node(f),
-#       "e | age * sex"
-#     )
-#   }
-# )
+test_that(
+  "Works with cph",
+  {
+    require(rms)
+
+    options(datadist='dd')
+    suppressWarnings(
+      f <- cph(Surv(dt, e) ~ rcs(age,4) + sex, x=TRUE, y=TRUE, data = dd))
+    expect_equal(
+      model_to_node(f),
+      "e | age * sex"
+    )
+  }
+)

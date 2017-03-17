@@ -23,6 +23,39 @@ be \code{t = 0}.}
 \item{...}{Additional arguments to be passed to other methods. 
 Current ignored.}
 }
+\value{
+Returns an object of class \code{dbn}.  The object is a list with two 
+elements:
+
+\itemize{
+  \item{\code{network} } A \code{formula} object that gives the formula 
+        used for the network definition.
+  \item{\code{node_attr}} A \code{tbl_df} that contains the 
+        characteristics of each node in the network.
+}
+
+The \code{node_attr} element has the columns:
+\itemize{
+  \item{\code{node_name} } The reference name for the node, stored as a character.
+  \item{\code{parent} } A list of character strings naming each of the 
+        parents of the node.
+  \item{\code{is_dynamic} } Logical value.
+  \item{\code{max_t} } The maximum time point to which dynamic nodes are 
+        extended.
+  \item{\code{is_decision} } Logical value.
+  \item{\code{is_utility} } Logical value.
+  \item{\code{is_deterministic} } Logical value.
+  \item{\code{model} } The model object for the node.
+  \item{\code{node_name_raw} } The full character name of the node.  For 
+        static nodes, this is identical to \code{node_name}. For dynamic 
+        nodes, this includes dynamic suffixes, such as \code{"x[t]"}.
+        This is provided for convenience of reference in internal operations.
+  \item{\code{parent_raw} } A list of character strings giving the full name
+        for each of the parents of the node. For  
+        static nodes, this is identical to \code{parent}. For dynamic 
+        nodes, this includes dynamic suffixes, such as \code{"x[t - 1]"}.
+}
+}
 \description{
 Construct a Dynamic Belief Network.  DBNs contain information 
   regarding how nodes and variables relate to each other. Relationships 
