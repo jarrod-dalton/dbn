@@ -41,6 +41,17 @@ get_node_formula <- function(network, node = NULL)
     node <- network[["node_attr"]][["node_name"]]
   }
   
+  if (any(!node %in% network[["node_attr"]][["node_name"]]))
+  {
+    node_not_found <- 
+      node[!node %in% network[["node_attr"]][["node_name"]]]
+    
+    warning("The following are not nodes in `network` and are ignored: ", 
+            paste0(node_not_found, collapse = ", "))
+    
+    node <- node[!node %in% node_not_found]
+  }
+  
   mapply(
     FUN = 
       function(n, p)

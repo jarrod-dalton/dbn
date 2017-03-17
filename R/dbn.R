@@ -146,7 +146,7 @@ dbn.list <- function(nodes, max_t = 0, ...)
   node_form <- sprintf("~ %s",
                        paste0(node_list, collapse = " + "))
   
-  network <- dbn.formula(as.formula(node_form))
+  network <- dbn.formula(stats::as.formula(node_form))
   
   network[["node_attr"]][["model"]][network[["node_attr"]][["node_name"]] %in% node_response] <- 
     lapply(nodes, identity)
