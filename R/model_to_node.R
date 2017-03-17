@@ -20,6 +20,8 @@
 #' \enumerate{
 #'   \item Only allow one variable in \code{xtabs} definitions 
 #' }
+#' 
+#' @export
 
 model_to_node <- function(m, ...)
 {
@@ -27,6 +29,7 @@ model_to_node <- function(m, ...)
 }
 
 #' @rdname model_to_node
+#' @export
 
 model_to_node.default <- function(m, ...)
 {
@@ -46,6 +49,7 @@ model_to_node.default <- function(m, ...)
 }
 
 #' @rdname model_to_node
+#' @export
 
 model_to_node.xtabs <- function(m, ...)
 {

@@ -23,6 +23,39 @@
 #'  There is no limit to how often a node may appear in the parents.  Any nodes
 #'  that are listed in the parents but not as a specific node will still be
 #'  identified as a node, but with no parents.
+#'  
+#' @return 
+#' Returns an object of class \code{dbn}.  The object is a list with two 
+#' elements:
+#' 
+#' \itemize{
+#'   \item{\code{network} } A \code{formula} object that gives the formula 
+#'         used for the network definition.
+#'   \item{\code{node_attr}} A \code{tbl_df} that contains the 
+#'         characteristics of each node in the network.
+#' }
+#' 
+#' The \code{node_attr} element has the columns:
+#' \itemize{
+#'   \item{\code{node_name} } The reference name for the node, stored as a character.
+#'   \item{\code{parent} } A list of character strings naming each of the 
+#'         parents of the node.
+#'   \item{\code{is_dynamic} } Logical value.
+#'   \item{\code{max_t} } The maximum time point to which dynamic nodes are 
+#'         extended.
+#'   \item{\code{is_decision} } Logical value.
+#'   \item{\code{is_utility} } Logical value.
+#'   \item{\code{is_deterministic} } Logical value.
+#'   \item{\code{model} } The model object for the node.
+#'   \item{\code{node_name_raw} } The full character name of the node.  For 
+#'         static nodes, this is identical to \code{node_name}. For dynamic 
+#'         nodes, this includes dynamic suffixes, such as \code{"x[t]"}.
+#'         This is provided for convenience of reference in internal operations.
+#'   \item{\code{parent_raw} } A list of character strings giving the full name
+#'         for each of the parents of the node. For  
+#'         static nodes, this is identical to \code{parent}. For dynamic 
+#'         nodes, this includes dynamic suffixes, such as \code{"x[t - 1]"}.
+#' }
 #'   
 #' @section Functional Requirements (General):
 #' \enumerate{
@@ -97,7 +130,27 @@ dbn.formula <- function(nodes, max_t = 0, ...)
 #' }   
 #' @export
 
-dbn.list <- function(nodes, ...)
+dbn.list <- function(nodes, max_t = 0, ...)
 {
-  message("This method is not yet implemented")
+  node_list <- 
+    vapply(X = nodes,
+           FUN = model_to_node,
+           FUN.VALUE = character(1))
+  
+  node_response <- 
+    sub(pattern = "[|].+$", 
+        replacement = "",
+        x = node_list)
+  node_response <- trimws(node_response)
+  
+  node_form <- sprintf("~ %s",
+                       paste0(node_list, collapse = " + "))
+  
+  network <- dbn.formula(as.formula(node_form))
+  
+  network[["node_attr"]][["model"]][network[["node_attr"]][["node_name"]] %in% node_response] <- 
+    lapply(nodes, identity)
+  
+  network
+
 }

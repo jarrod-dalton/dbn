@@ -10,7 +10,7 @@ dbn(nodes, max_t = 0, ...)
 
 \method{dbn}{formula}(nodes, max_t = 0, ...)
 
-\method{dbn}{list}(nodes, ...)
+\method{dbn}{list}(nodes, max_t = 0, ...)
 }
 \arguments{
 \item{nodes}{Either a \code{formula} or a \code{list} of models. See 
