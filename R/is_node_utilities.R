@@ -1,4 +1,4 @@
-#' @name is_node_something
+#' @name is_node_utilities
 #' @title Utilities to identify node attributes
 #' 
 #' @description Methods to quickly get logical indications of the attributes
@@ -15,9 +15,6 @@
 #' @details 
 #' \code{is_node_parent} returns a logical stating if the node is a parent of
 #'   at least one other node.
-#'   
-#' \code{get_node_parent} returns a list of character vectors. Each element
-#'   of the list is the parents for the corresponding value of \code{node}.
 #'   
 #' \code{is_node_parent_of} returns a logical stating if node is a parent of 
 #'   at least one element of \code{child}
@@ -40,6 +37,43 @@
 #' code base that needs to be maintained. 
 #'   
 #' @section Functional Requirements:
+#' \emph{is_node}
+#' 
+#' \enumerate{
+#'  \item Return a named logical vector the length of \code{node} indicating
+#'    if each element in node is a valid node name in \code{network}.
+#'  \item Cast an error if \code{network} is not a \code{dbn} object.
+#'  \item Cast an error if \code{node} is not a character vector.
+#' }
+#' 
+#' \emph{is_node_parent}
+#' 
+#' \enumerate{
+#'  \item Return a named logical vector the length of \code{node} indicating
+#'    if each element is a parent of another node in \code{network}
+#'  \item If \code{node = NULL}, \code{node} is assumed to be the 
+#'     vector of all node names.
+#'   \item If any \code{node} is not a node in \code{network}, cast a warning
+#'       and drop the invalid nodes.
+#'   \item If \code{network} is not a \code{dbn}, cast an error.
+#' }
+#' 
+#' \emph{is_node_parent_of}
+#' 
+#' \enumerate{
+#'  \item Return a named logical vector the length of \code{node} indicating
+#'    if each element is a parent of another node in \code{network}
+#'  \item If \code{node = NULL}, \code{node} is assumed to be the 
+#'     vector of all node names.
+#'   \item If any \code{node} is not a node in \code{network}, cast a warning
+#'       and drop the invalid nodes.
+#'   \item If \code{network} is not a \code{dbn}, cast an error.
+#'   \item Cast an error if \code{child} is not a \code{character(1)}
+#'   \item Cast an error if \code{child} is not a node in \code{network}
+#' }
+#' 
+#' \emph{is_node_dynamic, is_node_decision, is_utility, is_deterministic}
+#' 
 #' \enumerate{
 #'   \item Each method returns a logical vector (except for \code{get_node_parent}).
 #'   \item If \code{node = NULL}, \code{node} is assumed to be the 
@@ -47,11 +81,38 @@
 #'   \item If any \code{node} is not a node in \code{network}, cast a warning
 #'       and drop the invalid nodes.
 #'   \item If \code{network} is not a \code{dbn}, cast an error.
-#'   \item For \code{is_node_parent_of}, if \code{child} has length not 
-#'       equal to 1, cast an error.
-#'   \item For \code{get_node_parent}, returns a list of character vectors.
 #' }
 #' 
+#' @seealso \code{\link{set_node_utilities}} \code{\link{get_node_utilities}}
+#' 
+#' @export
+
+is_node <- function(network, node = NULL)
+{
+  coll <- checkmate::makeAssertCollection()
+  
+  checkmate::assert_class(x = network,
+                          classes = "dbn",
+                          add = coll)
+  
+  if (!is.null(node))
+  {
+    checkmate::assert_character(x = node,
+                                add = coll)
+  }
+  
+  checkmate::reportAssertions(coll)
+  
+  if (is.null(node)) 
+  {
+    node <- network[["node_attr"]][["node_name"]]
+  }
+  
+  stats::setNames(node %in% network[["node_attr"]][["node_name"]],
+                  node)
+}
+
+#' @rdname is_node_utilities
 #' @export
 
 is_node_parent <- function(network, node = NULL)
@@ -91,47 +152,7 @@ is_node_parent <- function(network, node = NULL)
   )
 }
 
-#' @rdname is_node_something
-#' @export
-
-get_node_parent <- function(network, node = NULL)
-{
-  coll <- checkmate::makeAssertCollection()
-  
-  checkmate::assert_class(x = network,
-                          classes = "dbn")
-  
-  if (!is.null(node))
-  {
-    checkmate::assert_character(x = node,
-                                add = coll)
-  }
-  
-  checkmate::reportAssertions(coll)
-  
-  if (is.null(node))
-  {
-    node <- network[["node_attr"]][["node_name"]]
-  }
-  
-  if (any(!node %in% network[["node_attr"]][["node_name"]]))
-  {
-    node_not_found <- 
-      node[!node %in% network[["node_attr"]][["node_name"]]]
-    
-    warning("The following are not nodes in `network` and are ignored: ", 
-            paste0(node_not_found, collapse = ", "))
-    
-    node <- node[!node %in% node_not_found]
-  }
-  
-  index <- match(node, network[["node_attr"]][["node_name"]])
-  
-  stats::setNames(network[["node_attr"]][["parent"]][index],
-                  node)
-}
-
-#' @rdname is_node_something
+#' @rdname is_node_utilities
 #' @export
 
 is_node_parent_of <- function(network, node = NULL, child)
@@ -150,6 +171,12 @@ is_node_parent_of <- function(network, node = NULL, child)
   checkmate::assert_character(x = child,
                               len = 1,
                               add = coll)
+  
+  checkmate::reportAssertions(coll)
+  
+  checkmate::assert_subset(x = child,
+                           choices = network[["node_attr"]][["node_name"]],
+                           add = coll)
   
   checkmate::reportAssertions(coll)
   
@@ -176,20 +203,7 @@ is_node_parent_of <- function(network, node = NULL, child)
                   node)
 }
 
-#' @rdname is_node_something
-#' @export
-
-is_node_dynamic <- function(network, node = NULL)
-{
-  is_node_something(network, node, "is_dynamic")
-}
-
-#' @rdname is_node_something
-#' @export
-
-get_node_dynamic <- is_node_dynamic
-
-#' @rdname is_node_something
+#' @rdname is_node_utilities
 #' @export
 
 is_node_decision <- function(network, node = NULL)
@@ -197,26 +211,7 @@ is_node_decision <- function(network, node = NULL)
   is_node_something(network, node, "is_decision")
 }
 
-#' @rdname is_node_something 
-#' @export 
-
-get_node_decision <- is_node_decision
-
-#' @rdname is_node_something
-#' @export
-
-is_node_utility <- function(network, node = NULL)
-{
-  is_node_something(network, node, "is_utility")
-}
-
-#' @rdname is_node_something 
-#' @export 
-
-get_node_utility <- is_node_utility
-
-
-#' @rdname is_node_something
+#' @rdname is_node_utilities
 #' @export
 
 is_node_deterministic <- function(network, node = NULL)
@@ -226,11 +221,21 @@ is_node_deterministic <- function(network, node = NULL)
                     attribute = "is_deterministic")
 }
 
-#' @rdname is_node_something
-#' @export 
+#' @rdname is_node_utilities
+#' @export
 
-get_node_deterministic <- is_node_deterministic
+is_node_dynamic <- function(network, node = NULL)
+{
+  is_node_something(network, node, "is_dynamic")
+}
 
+#' @rdname is_node_utilities
+#' @export
+
+is_node_utility <- function(network, node = NULL)
+{
+  is_node_something(network, node, "is_utility")
+}
 
 # Unexported -------------------------------------------------------- 
 
@@ -282,3 +287,23 @@ is_node_something <- function(network, node = NULL, attribute)
   stats::setNames(network[["node_attr"]][[attribute]][index],
                   node)
 }
+
+#' @rdname get_node_utilities 
+#' @export 
+
+get_node_decision <- is_node_decision
+
+#' @rdname get_node_utilities
+#' @export 
+
+get_node_deterministic <- is_node_deterministic
+
+#' @rdname get_node_utilities
+#' @export
+
+get_node_dynamic <- is_node_dynamic
+
+#' @rdname get_node_utilities 
+#' @export 
+
+get_node_utility <- is_node_utility
