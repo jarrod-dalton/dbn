@@ -18,7 +18,7 @@
 #'   \code{set_node} will cast an error.  If \code{force = TRUE}, the model
 #'   attribute will be dropped and a warning cast.
 #' @param ... named arguments where the name corresponds to a node name in 
-#'   \code{network} and the new value of the attribute. Use a 
+#'   \code{network} and the value is the new value of the attribute. Use a 
 #'   \code{numeric(1)} for \code{set_node_maxt} and a \code{logical(1)}
 #'   for the others.
 #' 

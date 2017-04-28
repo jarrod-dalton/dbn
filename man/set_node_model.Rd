@@ -6,11 +6,26 @@
 \title{Set and Retrieve Models for \code{dbn} Objects}
 \usage{
 has_node_model(network, node = NULL)
+
+set_node_model(network, ..., add = FALSE, force = FALSE)
 }
 \arguments{
 \item{network}{An object of class \code{dbn}}
 
 \item{node}{A character vector naming nodes in the network.}
+
+\item{...}{named arguments where the name corresponds to a node name in 
+\code{network} and the value is the model to assign to the node.}
+
+\item{add}{\code{logical(1)}. If \code{TRUE}, the node adopts all unique
+parents available between the existing parents and the new parents.
+If \code{FALSE}, the old parents are removed and new parents put in 
+their place.}
+
+\item{force}{\code{logical(1)}. If \code{FALSE} and the node has a model 
+object, the new parents will not already exist in the model and 
+\code{set_node} will cast an error.  If \code{force = TRUE}, the model
+attribute will be dropped and a warning cast.}
 }
 \description{
 Access and replace models associated with nodes in a \code{dbn}
@@ -29,6 +44,32 @@ Access and replace models associated with nodes in a \code{dbn}
     indicates if the node has a model in the network.
   \item Cast an error if \code{network} is not a \code{dbn} object.
   \item Cast an error if \code{node} is not a character vector.
+}
+
+\emph{set_node_model}
+
+\enumerate{
+  \item Replace the current node model with the specified model.
+  \item When \code{add = TRUE} append any parents in the model not 
+    currently in the node's parents to the \code{parent_raw} and \code{parent}
+    attributes of the node.
+  \item When \code{add = FALSE} replace the nodes in \code{parent_raw}
+    and \code{parent} with the parents in the model.
+  \item When \code{force = FALSE}, if parents in the model do not match the
+    parents of the node, cast an error.
+  \item When \code{force = TRUE}, if there are new parents to be added, 
+    perform the appropriate action based on the \code{add} argument.
+  \item When \code{force = TRUE} and \code{add = TRUE}, if the node has 
+    parents that aren't in the model, cast an error. \code{add = FALSE}
+    should be used to remove parents.
+  \item Cast an error if \code{network} is not a \code{dbn} object.
+  \item Cast an error if \code{...} is unnamed.
+  \item Cast an error if any model object in \code{...} cannot be parsed
+    by \code{model_to_node}
+  \item Cast an error if \code{add} is not a \code{logical(1)}.
+  \item Cast an error if \code{force} is not a \code{logical(1)}.
+  \item Cast an error if the model has more than one response variable.
+  \item Cast an error if the response variable does not match the node name.
 }
 }
 
